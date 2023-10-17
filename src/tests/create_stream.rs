@@ -1,48 +1,10 @@
-use soroban_sdk::{testutils::Address as _, token::Client, Address, Env};
+use soroban_sdk::{testutils::Address as _, Address};
 
-use crate::{base::errors, Fluxity, FluxityClient};
-
-struct CreateStreamTest<'a> {
-    env: Env,
-    admin: Address,
-    token: Client<'a>,
-    amount: i128,
-    contract: FluxityClient<'a>,
-}
-
-impl<'a> CreateStreamTest<'a> {
-    fn setup() -> Self {
-        let env = Env::default();
-        env.mock_all_auths();
-
-        let admin = Address::random(&env);
-
-        let token_id = env.register_stellar_asset_contract(admin.clone());
-        let token_client = soroban_sdk::token::Client::new(&env, &token_id);
-        let token_admin_client = soroban_sdk::token::StellarAssetClient::new(&env, &token_id);
-
-        let contract_id = env.register_contract(None, Fluxity);
-        let client = FluxityClient::new(&env, &contract_id);
-
-        let amount = 2_0000_000;
-
-        token_admin_client.mint(&admin, &amount);
-
-        token_client.approve(&admin, &client.address, &amount, &6311000);
-
-        Self {
-            env,
-            admin,
-            amount,
-            contract: client,
-            token: token_client,
-        }
-    }
-}
+use crate::{base::errors, tests::setup::SetupStreamTest};
 
 #[test]
 fn test_stream_should_be_created() {
-    let vars = CreateStreamTest::setup();
+    let vars = SetupStreamTest::setup();
 
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
@@ -67,7 +29,7 @@ fn test_stream_should_be_created() {
 
 #[test]
 fn test_second_stream_should_have_incremented_id() {
-    let vars = CreateStreamTest::setup();
+    let vars = SetupStreamTest::setup();
 
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
@@ -93,7 +55,7 @@ fn test_second_stream_should_have_incremented_id() {
 
 #[test]
 fn test_stream_should_revert_when_start_date_is_equal_to_end_date() {
-    let vars = CreateStreamTest::setup();
+    let vars = SetupStreamTest::setup();
 
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
@@ -117,7 +79,7 @@ fn test_stream_should_revert_when_start_date_is_equal_to_end_date() {
 
 #[test]
 fn test_stream_should_revert_when_start_date_is_greater_than_end_date() {
-    let vars = CreateStreamTest::setup();
+    let vars = SetupStreamTest::setup();
 
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
@@ -141,7 +103,7 @@ fn test_stream_should_revert_when_start_date_is_greater_than_end_date() {
 
 #[test]
 fn test_stream_should_revert_when_cancellable_date_is_less_than_start_date() {
-    let vars = CreateStreamTest::setup();
+    let vars = SetupStreamTest::setup();
 
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
@@ -165,7 +127,7 @@ fn test_stream_should_revert_when_cancellable_date_is_less_than_start_date() {
 
 #[test]
 fn test_stream_should_revert_when_cliff_date_is_less_than_start_date() {
-    let vars = CreateStreamTest::setup();
+    let vars = SetupStreamTest::setup();
 
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
@@ -189,7 +151,7 @@ fn test_stream_should_revert_when_cliff_date_is_less_than_start_date() {
 
 #[test]
 fn test_stream_should_revert_when_amount_is_zero() {
-    let vars = CreateStreamTest::setup();
+    let vars = SetupStreamTest::setup();
 
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
@@ -213,7 +175,7 @@ fn test_stream_should_revert_when_amount_is_zero() {
 
 #[test]
 fn test_stream_should_revert_when_amount_is_negative() {
-    let vars = CreateStreamTest::setup();
+    let vars = SetupStreamTest::setup();
 
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
@@ -237,7 +199,7 @@ fn test_stream_should_revert_when_amount_is_negative() {
 
 #[test]
 fn test_stream_should_revert_when_sender_and_receiver_are_the_same_address() {
-    let vars = CreateStreamTest::setup();
+    let vars = SetupStreamTest::setup();
 
     let now = vars.env.ledger().timestamp();
 

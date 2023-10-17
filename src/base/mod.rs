@@ -1,3 +1,4 @@
+pub mod contract;
 pub mod data_key;
 pub mod errors;
 pub mod events;
