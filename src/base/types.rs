@@ -1,15 +1,52 @@
-use soroban_sdk::{contracttype, Address, Vec};
+use soroban_sdk::{contracttype, Address};
+
+#[derive(Copy, Clone, Debug)]
+pub struct Amounts {
+    pub sender_amount: i128,
+    pub receiver_amount: i128,
+}
 
 #[contracttype]
 #[derive(Debug)]
-pub struct LinearStreamType {
+pub struct LinearStreamInputType {
     pub sender: Address,
-    pub receivers: Vec<Address>,
+    pub receiver: Address,
     pub token: Address,
     pub amount: i128,
     pub cancellable_date: u64,
     pub cliff_date: u64,
     pub start_date: u64,
     pub end_date: u64,
+}
+
+impl LinearStreamInputType {
+    pub fn into_linear_stream_type(self: &Self) -> LinearStreamType {
+        LinearStreamType {
+            withdrawn: 0,
+            is_cancelled: false,
+            sender: self.sender.clone(),
+            receiver: self.receiver.clone(),
+            token: self.token.clone(),
+            amount: self.amount,
+            cancellable_date: self.cancellable_date,
+            cliff_date: self.cliff_date,
+            start_date: self.start_date,
+            end_date: self.end_date,
+        }
+    }
+}
+
+#[contracttype]
+#[derive(Debug)]
+pub struct LinearStreamType {
     pub withdrawn: i128,
+    pub is_cancelled: bool,
+    pub sender: Address,
+    pub receiver: Address,
+    pub token: Address,
+    pub amount: i128,
+    pub cancellable_date: u64,
+    pub cliff_date: u64,
+    pub start_date: u64,
+    pub end_date: u64,
 }
