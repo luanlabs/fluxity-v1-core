@@ -33,6 +33,25 @@ impl FluxityTrait for Fluxity {
         }
     }
 
+    /// TODO: docs
+    /// Creates an stream
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let params = LinearStreamInputType {
+    ///     sender: Address::random(&env),
+    ///     receiver: Address::random(&env),
+    ///     token: Address::random(&env),
+    ///     amount: 20000000,
+    ///     start_date: now,
+    ///     cancellable_date: now,
+    ///     cliff_date: now + 100,
+    ///     end_date: now + 1000,
+    /// };
+    ///
+    /// Fluxity::create_stream(params);
+    /// ```
     fn create_stream(
         e: Env,
         params: types::LinearStreamInputType,
@@ -61,12 +80,7 @@ impl FluxityTrait for Fluxity {
             return Err(errors::CustomErrors::InvalidCliffDate);
         }
 
-        soroban_sdk::token::Client::new(&e, &params.token).transfer_from(
-            &e.current_contract_address(),
-            &params.sender,
-            &e.current_contract_address(),
-            &params.amount,
-        );
+        token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
         let id = storage::get_latest_stream_id(&e);
         let stream = params.into_linear_stream_type();
@@ -166,7 +180,6 @@ impl FluxityTrait for Fluxity {
 
         transfer(&e, &stream.token, &stream.receiver, &amount_to_transfer);
 
-        // TODO: withdrawn?
         events::publish_stream_withdrawn_event(&e, id);
 
         Ok(amount_to_transfer)
