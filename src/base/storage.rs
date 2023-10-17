@@ -13,7 +13,7 @@ pub fn get_stream_by_id(
         .persistent()
         .get(&data_key::DataKey::LinearStream(*id))
     {
-        None => Err(errors::CustomErrors::GetStreamNotFound),
+        None => Err(errors::CustomErrors::StreamNotFound),
         Some(stream) => Ok(stream),
     }
 }

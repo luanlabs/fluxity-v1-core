@@ -14,6 +14,13 @@ pub fn calculate_amounts(
         };
     }
 
+    if current_date <= cliff_date {
+        return Amounts {
+            sender_amount: amount,
+            receiver_amount: 0,
+        };
+    }
+
     if current_date >= end_date {
         return Amounts {
             sender_amount: 0,
