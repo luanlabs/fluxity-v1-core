@@ -6,6 +6,26 @@ use soroban_sdk::{
 
 use crate::{Fluxity, FluxityClient};
 
+pub struct StreamFields {
+    pub amount: i128,
+    pub start_date: u64,
+    pub end_date: u64,
+    pub cliff_date: u64,
+    pub cancellable_date: u64,
+}
+
+impl Default for StreamFields {
+    fn default() -> Self {
+        Self {
+            amount: 1000,
+            start_date: 0,
+            end_date: 100,
+            cliff_date: 0,
+            cancellable_date: 0,
+        }
+    }
+}
+
 pub struct SetupStreamTest<'a> {
     pub env: Env,
     pub admin: Address,
@@ -42,12 +62,8 @@ impl<'a> SetupStreamTest<'a> {
         }
     }
 
-    pub fn setup_with_stream_created(
-        amount: i128,
-        cancellable_date: u64,
-        end_date: u64,
-    ) -> (Self, u64) {
-        let vars = Self::setup(amount);
+    pub fn setup_with_stream_created(fields: StreamFields) -> (Self, u64) {
+        let vars = Self::setup(fields.amount);
 
         let receiver = Address::random(&vars.env);
         let now = vars.env.ledger().timestamp();
@@ -57,10 +73,10 @@ impl<'a> SetupStreamTest<'a> {
             receiver,
             token: vars.token.address.clone(),
             amount: vars.amount,
-            cliff_date: now,
-            start_date: now,
-            end_date: now + end_date,
-            cancellable_date: now + cancellable_date,
+            cliff_date: now + fields.cliff_date,
+            start_date: now + fields.start_date,
+            end_date: now + fields.end_date,
+            cancellable_date: now + fields.cancellable_date,
             rate: crate::base::types::Rate::Monthly,
         };
 

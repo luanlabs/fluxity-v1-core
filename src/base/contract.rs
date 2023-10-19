@@ -31,7 +31,6 @@ impl FluxityTrait for Fluxity {
         }
     }
 
-    /// TODO: docs
     /// Creates an stream
     ///
     /// # Examples
@@ -48,7 +47,7 @@ impl FluxityTrait for Fluxity {
     ///     end_date: now + 1000,
     /// };
     ///
-    /// Fluxity::create_stream(params);
+    /// fluxity_client::create_stream(params);
     /// ```
     fn create_stream(
         e: Env,
@@ -68,9 +67,7 @@ impl FluxityTrait for Fluxity {
             return Err(errors::CustomErrors::InvalidStartDate);
         }
 
-        if &params.cancellable_date < &params.start_date
-            || &params.cancellable_date > &params.end_date
-        {
+        if &params.cancellable_date > &params.end_date {
             return Err(errors::CustomErrors::InvalidCancellableDate);
         }
 
@@ -81,7 +78,7 @@ impl FluxityTrait for Fluxity {
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
         let id = storage::get_latest_stream_id(&e);
-        let stream = params.into_linear_stream_type();
+        let stream: types::LinearStreamType = params.into();
 
         storage::set_stream(&e, id, &stream);
         storage::increment_latest_stream_id(&e, &id);

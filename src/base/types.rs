@@ -30,8 +30,8 @@ pub struct LinearStreamInputType {
     pub rate: Rate,
 }
 
-impl LinearStreamInputType {
-    pub fn into_linear_stream_type(self: &Self) -> LinearStreamType {
+impl Into<LinearStreamType> for LinearStreamInputType {
+    fn into(self) -> LinearStreamType {
         LinearStreamType {
             withdrawn: 0,
             is_cancelled: false,

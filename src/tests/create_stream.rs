@@ -140,31 +140,6 @@ fn test_stream_should_revert_when_start_date_is_greater_than_end_date() {
 }
 
 #[test]
-fn test_stream_should_revert_when_cancellable_date_is_less_than_start_date() {
-    let vars = SetupStreamTest::setup(2000);
-
-    let receiver = Address::random(&vars.env);
-    let now = vars.env.ledger().timestamp();
-
-    let params = crate::base::types::LinearStreamInputType {
-        sender: vars.admin.clone(),
-        receiver,
-        token: vars.token.address.clone(),
-        amount: vars.amount,
-        cancellable_date: now,
-        cliff_date: now + 100,
-        start_date: now + 100,
-        end_date: now + 200,
-        rate: crate::base::types::Rate::Monthly,
-    };
-
-    assert_eq!(
-        vars.contract.try_create_stream(&params),
-        Err(Ok(errors::CustomErrors::InvalidCancellableDate))
-    );
-}
-
-#[test]
 fn test_stream_should_revert_when_cliff_date_is_less_than_start_date() {
     let vars = SetupStreamTest::setup(2000);
 

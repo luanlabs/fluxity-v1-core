@@ -4,11 +4,14 @@ use soroban_sdk::{
     IntoVal,
 };
 
-use crate::{base::errors, tests::setup::SetupStreamTest};
+use crate::{
+    base::errors,
+    tests::setup::{SetupStreamTest, StreamFields},
+};
 
 #[test]
 fn test_stream_should_be_cancelled_after_creation() {
-    let (vars, id) = SetupStreamTest::setup_with_stream_created(1000, 0, 100);
+    let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
     let amounts = vars.contract.cancel_stream(&id);
     let stream = vars.contract.get_stream(&id);
@@ -23,7 +26,7 @@ fn test_stream_should_be_cancelled_after_creation() {
 
 #[test]
 fn test_cancel_stream_should_emit_event() {
-    let (vars, id) = SetupStreamTest::setup_with_stream_created(1000, 0, 100);
+    let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
     vars.contract.cancel_stream(&id);
 
@@ -37,7 +40,7 @@ fn test_cancel_stream_should_emit_event() {
 
 #[test]
 fn test_cancel_stream_should_transfer_tokens_to_both_sides() {
-    let (vars, id) = SetupStreamTest::setup_with_stream_created(1000, 0, 100);
+    let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
     let new_timestamp = 50;
     vars.move_ledger_timestamp_to(new_timestamp);
@@ -58,7 +61,7 @@ fn test_cancel_stream_should_transfer_tokens_to_both_sides() {
 
 #[test]
 fn test_cancel_stream_should_revert_when_stream_is_already_cancelled() {
-    let (vars, id) = SetupStreamTest::setup_with_stream_created(1000, 0, 100);
+    let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
     vars.contract.cancel_stream(&id);
     let result = vars.contract.try_cancel_stream(&id);
@@ -68,7 +71,7 @@ fn test_cancel_stream_should_revert_when_stream_is_already_cancelled() {
 
 #[test]
 fn test_cancel_stream_should_revert_when_stream_is_already_settled() {
-    let (vars, id) = SetupStreamTest::setup_with_stream_created(1000, 0, 100);
+    let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
     let new_timestamp = 100;
     vars.move_ledger_timestamp_to(new_timestamp);
@@ -81,7 +84,10 @@ fn test_cancel_stream_should_revert_when_stream_is_already_settled() {
 
 #[test]
 fn test_cancel_stream_should_revert_when_cancellable_date_is_not_reached() {
-    let (vars, id) = SetupStreamTest::setup_with_stream_created(1000, 50, 100);
+    let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields {
+        cancellable_date: 50,
+        ..Default::default()
+    });
 
     let new_timestamp = 20;
     vars.move_ledger_timestamp_to(new_timestamp);
