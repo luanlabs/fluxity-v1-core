@@ -1,7 +1,7 @@
 use soroban_sdk::{contracttype, Address};
 
 #[contracttype]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 #[repr(u32)]
 pub enum Rate {
     Daily,
@@ -49,7 +49,7 @@ impl Into<LinearStreamType> for LinearStreamInputType {
 }
 
 #[contracttype]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct LinearStreamType {
     pub withdrawn: i128,
     pub is_cancelled: bool,
