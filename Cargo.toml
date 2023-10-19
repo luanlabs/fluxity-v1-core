@@ -11,6 +11,7 @@ testutils = ["soroban-sdk/testutils"]
 
 [dependencies]
 soroban-sdk = "20.0.0-rc2"
+soroban-ledger-snapshot = "20.0.0-rc2"
 
 [dev_dependencies]
 soroban-sdk = { version = "20.0.0-rc2", features = ["testutils"] }

@@ -101,7 +101,7 @@ impl FluxityTrait for Fluxity {
 
         let current_date = e.ledger().timestamp();
 
-        if stream.end_date >= current_date {
+        if stream.end_date <= current_date {
             return Err(errors::CustomErrors::StreamAlreadySettled);
         }
 
@@ -125,8 +125,13 @@ impl FluxityTrait for Fluxity {
 
         storage::set_stream(&e, id, &stream);
 
-        token::transfer(&e, &stream.token, &stream.receiver, &receiver_amount);
-        token::transfer(&e, &stream.token, &stream.sender, &sender_amount);
+        if receiver_amount > 0 {
+            token::transfer(&e, &stream.token, &stream.receiver, &receiver_amount);
+        }
+
+        if sender_amount > 0 {
+            token::transfer(&e, &stream.token, &stream.sender, &sender_amount);
+        }
 
         events::publish_stream_cancelled_event(&e, id);
 
@@ -136,13 +141,21 @@ impl FluxityTrait for Fluxity {
     fn withdraw_stream(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
         let mut stream = storage::get_stream_by_id(&e, &id).unwrap();
 
-        stream.receiver.require_auth();
+        if amount < 0 {
+            return Err(errors::CustomErrors::AmountUnderflows);
+        }
 
         if stream.is_cancelled {
             return Err(errors::CustomErrors::StreamIsCanceled);
         }
 
+        stream.receiver.require_auth();
+
         let current_date = e.ledger().timestamp();
+
+        if current_date <= stream.start_date {
+            return Err(errors::CustomErrors::StreamNotStartedYet);
+        }
 
         if current_date <= stream.cliff_date {
             return Ok(0);
@@ -155,10 +168,6 @@ impl FluxityTrait for Fluxity {
             current_date,
             stream.amount,
         );
-
-        if amount < 0 {
-            return Err(errors::CustomErrors::AmountUnderflows);
-        }
 
         let withdrawable = amounts.receiver_amount - stream.withdrawn;
 

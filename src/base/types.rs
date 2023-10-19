@@ -1,5 +1,15 @@
 use soroban_sdk::{contracttype, Address};
 
+#[contracttype]
+#[derive(Debug, Clone)]
+#[repr(u32)]
+pub enum Rate {
+    Daily,
+    Weekly,
+    Monthly,
+    Quarterly,
+}
+
 #[derive(Copy, Clone, Debug)]
 pub struct Amounts {
     pub sender_amount: i128,
@@ -17,6 +27,7 @@ pub struct LinearStreamInputType {
     pub cliff_date: u64,
     pub start_date: u64,
     pub end_date: u64,
+    pub rate: Rate,
 }
 
 impl LinearStreamInputType {
@@ -32,6 +43,7 @@ impl LinearStreamInputType {
             cliff_date: self.cliff_date,
             start_date: self.start_date,
             end_date: self.end_date,
+            rate: self.rate.clone(),
         }
     }
 }
@@ -49,4 +61,5 @@ pub struct LinearStreamType {
     pub cliff_date: u64,
     pub start_date: u64,
     pub end_date: u64,
+    pub rate: Rate,
 }
