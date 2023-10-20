@@ -4,21 +4,17 @@ use soroban_sdk::contracterror;
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(u64)]
 pub enum CustomErrors {
-    InvalidAmount = 1000,
-    InvalidReceiver = 1001,
-    InvalidStartDate = 1002,
-    InvalidCliffDate = 1003,
-    InvalidCancellableDate = 1004,
-
-    StreamNotStartedYet = 2000,
-
-    StreamAlreadyCanceled = 3000,
-    StreamAlreadySettled = 3001,
-    StreamNotCancellableYet = 3002,
-
-    StreamNotFound = 4000,
-
-    StreamIsCanceled = 5000,
-    SpecifiedAmountIsGreaterThanWithdrawable = 5001,
-    AmountUnderflows = 5002,
+    InvalidAmount = 0,
+    InvalidReceiver = 1,
+    InvalidStartDate = 2,
+    InvalidCliffDate = 3,
+    InvalidCancellableDate = 4,
+    StreamNotStartedYet = 5,
+    StreamAlreadyCanceled = 6,
+    StreamAlreadySettled = 7,
+    StreamNotCancellableYet = 8,
+    StreamNotFound = 9,
+    StreamIsCanceled = 10,
+    SpecifiedAmountIsGreaterThanWithdrawable = 11,
+    AmountUnderflows = 12,
 }
