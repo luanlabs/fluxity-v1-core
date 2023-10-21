@@ -4,10 +4,7 @@ use super::data_key;
 use super::errors;
 use super::types;
 
-pub fn get_stream_by_id(
-    e: &Env,
-    id: &u64,
-) -> Result<types::LinearStreamType, errors::CustomErrors> {
+pub fn get_stream_by_id(e: &Env, id: &u64) -> Result<types::StreamType, errors::CustomErrors> {
     match e
         .storage()
         .persistent()
@@ -31,7 +28,7 @@ pub fn increment_latest_stream_id(e: &Env, id: &u64) {
         .set(&data_key::DataKey::LatestStreamId, &(id + 1));
 }
 
-pub fn set_stream(e: &Env, id: u64, stream: &types::LinearStreamType) {
+pub fn set_stream(e: &Env, id: u64, stream: &types::StreamType) {
     e.storage()
         .persistent()
         .set(&data_key::DataKey::LinearStream(id), stream);

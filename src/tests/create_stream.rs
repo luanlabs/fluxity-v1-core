@@ -13,7 +13,7 @@ fn test_stream_should_be_created() {
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
 
-    let params = crate::base::types::LinearStreamInputType {
+    let params = crate::base::types::StreamInputType {
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -40,7 +40,7 @@ fn test_create_stream_should_emit_events() {
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
 
-    let params = crate::base::types::LinearStreamInputType {
+    let params = crate::base::types::StreamInputType {
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -69,7 +69,7 @@ fn test_second_stream_should_have_incremented_id() {
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
 
-    let params = crate::base::types::LinearStreamInputType {
+    let params = crate::base::types::StreamInputType {
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -96,7 +96,7 @@ fn test_stream_should_revert_when_start_date_is_equal_to_end_date() {
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
 
-    let params = crate::base::types::LinearStreamInputType {
+    let params = crate::base::types::StreamInputType {
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -121,7 +121,7 @@ fn test_stream_should_revert_when_start_date_is_greater_than_end_date() {
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
 
-    let params = crate::base::types::LinearStreamInputType {
+    let params = crate::base::types::StreamInputType {
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -146,7 +146,7 @@ fn test_stream_should_revert_when_cliff_date_is_less_than_start_date() {
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
 
-    let params = crate::base::types::LinearStreamInputType {
+    let params = crate::base::types::StreamInputType {
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -171,7 +171,7 @@ fn test_stream_should_revert_when_amount_is_zero() {
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
 
-    let params = crate::base::types::LinearStreamInputType {
+    let params = crate::base::types::StreamInputType {
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -196,7 +196,7 @@ fn test_stream_should_revert_when_amount_is_negative() {
     let receiver = Address::random(&vars.env);
     let now = vars.env.ledger().timestamp();
 
-    let params = crate::base::types::LinearStreamInputType {
+    let params = crate::base::types::StreamInputType {
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -220,7 +220,7 @@ fn test_stream_should_revert_when_sender_and_receiver_are_the_same_address() {
 
     let now = vars.env.ledger().timestamp();
 
-    let params = crate::base::types::LinearStreamInputType {
+    let params = crate::base::types::StreamInputType {
         sender: vars.admin.clone(),
         receiver: vars.admin.clone(),
         token: vars.token.address.clone(),

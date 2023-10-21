@@ -1,16 +1,14 @@
-use soroban_sdk::{contract, contractimpl, Address, Env};
+use soroban_sdk::{contract, contractimpl, Env};
 
 use super::*;
 
 pub trait FluxityTrait {
-    fn init(e: Env, admin: Address);
-    fn get_stream(e: Env, id: u64) -> Result<types::LinearStreamType, errors::CustomErrors>;
-    fn create_stream(
-        e: Env,
-        params: types::LinearStreamInputType,
-    ) -> Result<u64, errors::CustomErrors>;
+    fn get_stream(e: Env, id: u64) -> Result<types::StreamType, errors::CustomErrors>;
+    fn create_stream(e: Env, params: types::StreamInputType) -> Result<u64, errors::CustomErrors>;
     fn cancel_stream(e: Env, id: u64) -> Result<(i128, i128), errors::CustomErrors>;
     fn withdraw_stream(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors>;
+    fn create_vesting(e: Env, params: types::VestingInputType)
+        -> Result<u64, errors::CustomErrors>;
 }
 
 #[contract]
@@ -18,9 +16,7 @@ pub struct Fluxity;
 
 #[contractimpl]
 impl FluxityTrait for Fluxity {
-    fn init(_e: Env, _admin: Address) {}
-
-    fn get_stream(e: Env, id: u64) -> Result<types::LinearStreamType, errors::CustomErrors> {
+    fn get_stream(e: Env, id: u64) -> Result<types::StreamType, errors::CustomErrors> {
         match e
             .storage()
             .persistent()
@@ -49,10 +45,7 @@ impl FluxityTrait for Fluxity {
     ///
     /// fluxity_client::create_stream(params);
     /// ```
-    fn create_stream(
-        e: Env,
-        params: types::LinearStreamInputType,
-    ) -> Result<u64, errors::CustomErrors> {
+    fn create_stream(e: Env, params: types::StreamInputType) -> Result<u64, errors::CustomErrors> {
         params.sender.require_auth();
 
         if params.amount <= 0 {
@@ -78,7 +71,7 @@ impl FluxityTrait for Fluxity {
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
         let id = storage::get_latest_stream_id(&e);
-        let stream: types::LinearStreamType = params.into();
+        let stream: types::StreamType = params.into();
 
         storage::set_stream(&e, id, &stream);
         storage::increment_latest_stream_id(&e, &id);
@@ -106,13 +99,24 @@ impl FluxityTrait for Fluxity {
             return Err(errors::CustomErrors::StreamNotCancellableYet);
         }
 
-        let amounts = utils::calculate_amounts(
+        let mut amounts = utils::calculate_stream_amounts(
             stream.start_date,
             stream.end_date,
             stream.cliff_date,
             current_date,
             stream.amount,
         );
+
+        if stream.is_vesting {
+            amounts = utils::calculate_vesting_amounts(
+                stream.start_date,
+                stream.end_date,
+                stream.cliff_date,
+                current_date,
+                stream.rate,
+                stream.amount,
+            );
+        }
 
         let sender_amount = amounts.sender_amount;
         let receiver_amount = amounts.receiver_amount - stream.withdrawn;
@@ -158,13 +162,24 @@ impl FluxityTrait for Fluxity {
             return Ok(0);
         }
 
-        let amounts = utils::calculate_amounts(
+        let mut amounts = utils::calculate_stream_amounts(
             stream.start_date,
             stream.end_date,
             stream.cliff_date,
             current_date,
             stream.amount,
         );
+
+        if stream.is_vesting {
+            amounts = utils::calculate_vesting_amounts(
+                stream.start_date,
+                stream.end_date,
+                stream.cliff_date,
+                current_date,
+                stream.rate,
+                stream.amount,
+            );
+        }
 
         let withdrawable = amounts.receiver_amount - stream.withdrawn;
 
@@ -189,5 +204,41 @@ impl FluxityTrait for Fluxity {
         Ok(amount_to_transfer)
     }
 
-    // fn create_vesting()
+    fn create_vesting(
+        e: Env,
+        params: types::VestingInputType,
+    ) -> Result<u64, errors::CustomErrors> {
+        params.sender.require_auth();
+
+        if params.amount <= 0 {
+            return Err(errors::CustomErrors::InvalidAmount);
+        }
+
+        if &params.sender == &params.receiver {
+            return Err(errors::CustomErrors::InvalidReceiver);
+        }
+
+        if &params.start_date >= &params.end_date {
+            return Err(errors::CustomErrors::InvalidStartDate);
+        }
+
+        if &params.cancellable_date > &params.end_date {
+            return Err(errors::CustomErrors::InvalidCancellableDate);
+        }
+
+        if &params.cliff_date < &params.start_date || &params.cliff_date > &params.end_date {
+            return Err(errors::CustomErrors::InvalidCliffDate);
+        }
+
+        token::transfer_from(&e, &params.token, &params.sender, &params.amount);
+
+        let id = storage::get_latest_stream_id(&e);
+        let stream: types::StreamType = params.into();
+
+        storage::set_stream(&e, id, &stream);
+        storage::increment_latest_stream_id(&e, &id);
+        events::publish_vesting_created_event(&e, id);
+
+        Ok(id)
+    }
 }

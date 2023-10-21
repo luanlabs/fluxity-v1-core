@@ -68,7 +68,7 @@ impl<'a> SetupStreamTest<'a> {
         let receiver = Address::random(&vars.env);
         let now = vars.env.ledger().timestamp();
 
-        let params = crate::base::types::LinearStreamInputType {
+        let params = crate::base::types::StreamInputType {
             sender: vars.admin.clone(),
             receiver,
             token: vars.token.address.clone(),

@@ -16,3 +16,8 @@ pub fn publish_stream_withdrawn_event(e: &Env, id: u64) {
     e.events()
         .publish((symbol_short!("STREAM"), symbol_short!("WITHDRAWN")), id);
 }
+
+pub fn publish_vesting_created_event(e: &Env, id: u64) {
+    e.events()
+        .publish((symbol_short!("VESTING"), symbol_short!("CREATED")), id);
+}
