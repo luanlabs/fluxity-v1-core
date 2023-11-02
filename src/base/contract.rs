@@ -41,9 +41,10 @@ impl FluxityTrait for Fluxity {
     ///     cancellable_date: now,
     ///     cliff_date: now + 100,
     ///     end_date: now + 1000,
+    ///     rate: Rate::Daily
     /// };
     ///
-    /// fluxity_client::create_stream(params);
+    /// fluxity_client::create_stream(&params);
     /// ```
     fn create_stream(e: Env, params: types::StreamInputType) -> Result<u64, errors::CustomErrors> {
         params.sender.require_auth();
@@ -80,6 +81,15 @@ impl FluxityTrait for Fluxity {
         Ok(id)
     }
 
+    /// Cancels an stream
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let stream_id = 20;
+    ///
+    /// fluxity_client::cancel_stream(&stream_id);
+    /// ```
     fn cancel_stream(e: Env, id: u64) -> Result<(i128, i128), errors::CustomErrors> {
         let mut stream = storage::get_stream_by_id(&e, &id).unwrap();
 
@@ -139,6 +149,16 @@ impl FluxityTrait for Fluxity {
         Ok((sender_amount, receiver_amount))
     }
 
+    /// Withdraws from an stream
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let stream_id = 20;
+    /// let amount_to_withdraw = 30000000 // Represents 3 in a 7-decimal token
+    ///
+    /// fluxity_client::withdraw_stream(&stream_id, &amount_to_withdraw);
+    /// ```
     fn withdraw_stream(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
         let mut stream = storage::get_stream_by_id(&e, &id).unwrap();
 
@@ -204,6 +224,25 @@ impl FluxityTrait for Fluxity {
         Ok(amount_to_transfer)
     }
 
+    /// Creates a vesting stream
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let params = VestingInputType {
+    ///     sender: Address::random(&env),
+    ///     receiver: Address::random(&env),
+    ///     token: Address::random(&env),
+    ///     amount: 20000000,
+    ///     start_date: now,
+    ///     cancellable_date: now,
+    ///     cliff_date: now + 100,
+    ///     end_date: now + 1000,
+    ///     rate: Rate::Daily
+    /// };
+    ///
+    /// fluxity_client::create_vesting(&params);
+    /// ```
     fn create_vesting(
         e: Env,
         params: types::VestingInputType,

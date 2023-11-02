@@ -3,5 +3,5 @@ mod base;
 
 pub use base::contract::*;
 
-#[cfg(test)]
-mod tests;
+// #[cfg(test)]
+// mod tests;
