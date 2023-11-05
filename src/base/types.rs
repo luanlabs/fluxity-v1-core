@@ -8,6 +8,7 @@ pub enum Rate {
     Weekly = 604800,
     Monthly = 2592000,
     Quarterly = 10368000,
+    Annually = 31536000,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -43,6 +44,7 @@ impl Into<StreamType> for StreamInputType {
             cliff_date: self.cliff_date,
             start_date: self.start_date,
             end_date: self.end_date,
+            // rate: Rate::Daily,
             rate: self.rate.clone(),
             is_vesting: false,
         }
