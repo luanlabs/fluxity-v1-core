@@ -34,6 +34,61 @@ fn test_stream_should_be_created() {
 }
 
 #[test]
+fn test_stream_should_be_created_and_id_should_increment() {
+    let vars = SetupStreamTest::setup(2000);
+
+    let receiver = Address::random(&vars.env);
+    let now = vars.env.ledger().timestamp();
+
+    let params = crate::base::types::StreamInputType {
+        sender: vars.admin.clone(),
+        receiver,
+        token: vars.token.address.clone(),
+        amount: vars.amount,
+        cancellable_date: now,
+        cliff_date: now + 100,
+        start_date: now,
+        end_date: now + 1000,
+        rate: crate::base::types::Rate::Monthly,
+    };
+
+    assert_eq!(vars.contract.get_latest_stream_id(), 0);
+    let id = vars.contract.create_stream(&params);
+    assert_eq!(vars.contract.get_latest_stream_id(), 1);
+
+    assert_eq!(id, 0);
+    assert_eq!(vars.token.decimals(), 7);
+    assert_eq!(vars.token.balance(&vars.admin), 0);
+    assert_eq!(vars.token.balance(&vars.contract.address), vars.amount);
+}
+
+#[test]
+fn test_stream_should_be_created_and_id_should_increment_by_200() {
+    let vars = SetupStreamTest::setup(200_000);
+
+    let receiver = Address::random(&vars.env);
+    let now = vars.env.ledger().timestamp();
+
+    let params = crate::base::types::StreamInputType {
+        sender: vars.admin.clone(),
+        receiver,
+        token: vars.token.address.clone(),
+        amount: 1,
+        cancellable_date: now,
+        cliff_date: now + 100,
+        start_date: now,
+        end_date: now + 1000,
+        rate: crate::base::types::Rate::Monthly,
+    };
+
+    for i in 0..100 {
+        assert_eq!(vars.contract.get_latest_stream_id(), i);
+        vars.contract.create_stream(&params);
+        assert_eq!(vars.contract.get_latest_stream_id(), i + 1);
+    }
+}
+
+#[test]
 fn test_create_stream_should_emit_events() {
     let vars = SetupStreamTest::setup(2000);
 

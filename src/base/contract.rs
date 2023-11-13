@@ -3,6 +3,7 @@ use soroban_sdk::{contract, contractimpl, Env};
 use super::*;
 
 pub trait FluxityTrait {
+    fn get_latest_stream_id(e: Env) -> u64;
     fn get_stream(e: Env, id: u64) -> Result<types::StreamType, errors::CustomErrors>;
     fn create_stream(e: Env, params: types::StreamInputType) -> Result<u64, errors::CustomErrors>;
     fn cancel_stream(e: Env, id: u64) -> Result<(i128, i128), errors::CustomErrors>;
@@ -16,6 +17,26 @@ pub struct Fluxity;
 
 #[contractimpl]
 impl FluxityTrait for Fluxity {
+    /// Returns the latest stream id
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let id = fluxity_client::get_latest_stream_id();
+    /// ```
+    fn get_latest_stream_id(e: Env) -> u64 {
+        storage::get_latest_stream_id(&e)
+    }
+
+    /// Returns an stream by id
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let stream_id = 20;
+    ///
+    /// fluxity_client::get_stream(&stream_id);
+    /// ```
     fn get_stream(e: Env, id: u64) -> Result<types::StreamType, errors::CustomErrors> {
         match e
             .storage()
