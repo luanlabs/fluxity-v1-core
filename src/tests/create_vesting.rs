@@ -10,7 +10,7 @@ use crate::base::{
 fn test_create_vesting_should_work() {
     let vars = SetupStreamTest::setup(1000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
@@ -33,7 +33,7 @@ fn test_create_vesting_should_work() {
 fn test_create_vesting_should_store_is_vesting_to_true() {
     let vars = SetupStreamTest::setup(1000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
@@ -60,7 +60,7 @@ fn test_create_vesting_should_store_is_vesting_to_true() {
 fn test_create_vesting_should_revert_when_amount_is_negative() {
     let vars = SetupStreamTest::setup(1000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
@@ -85,7 +85,7 @@ fn test_create_vesting_should_revert_when_amount_is_negative() {
 fn test_create_vesting_should_revert_when_amount_is_zero() {
     let vars = SetupStreamTest::setup(1000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
@@ -134,7 +134,7 @@ fn test_create_vesting_should_revert_when_sender_and_receiver_are_the_same() {
 fn test_create_vesting_should_revert_when_start_date_is_equal_to_end_date() {
     let vars = SetupStreamTest::setup(1000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
     // let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
@@ -159,7 +159,7 @@ fn test_create_vesting_should_revert_when_start_date_is_equal_to_end_date() {
 fn test_create_vesting_should_revert_when_cancellable_date_is_greater_than_end_date() {
     let vars = SetupStreamTest::setup(1000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 

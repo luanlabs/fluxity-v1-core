@@ -4,7 +4,10 @@ use soroban_sdk::{
     Address, Env,
 };
 
-use crate::{Fluxity, FluxityClient};
+use crate::{
+    base::types::{Rate, VestingInputType},
+    Fluxity, FluxityClient,
+};
 
 pub struct StreamFields {
     pub amount: i128,
@@ -12,6 +15,28 @@ pub struct StreamFields {
     pub end_date: u64,
     pub cliff_date: u64,
     pub cancellable_date: u64,
+}
+
+pub struct VestingFields {
+    pub rate: Rate,
+    pub amount: i128,
+    pub start_date: u64,
+    pub end_date: u64,
+    pub cliff_date: u64,
+    pub cancellable_date: u64,
+}
+
+impl Default for VestingFields {
+    fn default() -> Self {
+        Self {
+            amount: 1000,
+            start_date: 0,
+            end_date: 100,
+            cliff_date: 0,
+            cancellable_date: 0,
+            rate: Rate::Daily,
+        }
+    }
 }
 
 impl Default for StreamFields {
@@ -40,7 +65,7 @@ impl<'a> SetupStreamTest<'a> {
 
         env.mock_all_auths();
 
-        let admin = Address::random(&env);
+        let admin = Address::generate(&env);
 
         let token_id = env.register_stellar_asset_contract(admin.clone());
         let token_client = soroban_sdk::token::Client::new(&env, &token_id);
@@ -65,7 +90,7 @@ impl<'a> SetupStreamTest<'a> {
     pub fn setup_with_stream_created(fields: StreamFields) -> (Self, u64) {
         let vars = Self::setup(fields.amount);
 
-        let receiver = Address::random(&vars.env);
+        let receiver = Address::generate(&vars.env);
         let now = vars.env.ledger().timestamp();
 
         let params = crate::base::types::StreamInputType {
@@ -86,6 +111,29 @@ impl<'a> SetupStreamTest<'a> {
         assert_eq!(vars.token.decimals(), 7);
         assert_eq!(vars.token.balance(&vars.admin), 0);
         assert_eq!(vars.token.balance(&vars.contract.address), vars.amount);
+
+        (vars, id)
+    }
+
+    pub fn setup_with_vesting_created(fields: VestingFields) -> (Self, u64) {
+        let vars = Self::setup(fields.amount);
+
+        let receiver = Address::generate(&vars.env);
+        let now = vars.env.ledger().timestamp();
+
+        let params = VestingInputType {
+            sender: vars.admin.clone(),
+            receiver,
+            amount: fields.amount,
+            rate: fields.rate,
+            end_date: now + fields.end_date,
+            cliff_date: now + fields.cliff_date,
+            cancellable_date: now + fields.cancellable_date,
+            start_date: now + fields.start_date,
+            token: vars.token.address.clone(),
+        };
+
+        let id = vars.contract.create_vesting(&params);
 
         (vars, id)
     }

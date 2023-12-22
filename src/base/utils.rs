@@ -71,7 +71,7 @@ pub fn calculate_vesting_amounts(
 
     let total_date: i128 = (end_date - start_date).into();
     let proceeded_date: i128 = (current_date - start_date).into();
-    let rate_in_seconds: i128 = rate as i128;
+    let rate_in_seconds = rate as i128;
 
     let times = proceeded_date / rate_in_seconds;
     let one_time_amount = total_date / amount * rate_in_seconds;

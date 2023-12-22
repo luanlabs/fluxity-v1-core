@@ -10,7 +10,7 @@ use crate::{base::errors, tests::setup::SetupStreamTest};
 fn test_stream_should_be_created() {
     let vars = SetupStreamTest::setup(2000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
@@ -37,7 +37,7 @@ fn test_stream_should_be_created() {
 fn test_stream_should_be_created_and_id_should_increment() {
     let vars = SetupStreamTest::setup(2000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
@@ -66,7 +66,7 @@ fn test_stream_should_be_created_and_id_should_increment() {
 fn test_stream_should_be_created_and_id_should_increment_by_200() {
     let vars = SetupStreamTest::setup(200_000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
@@ -92,7 +92,7 @@ fn test_stream_should_be_created_and_id_should_increment_by_200() {
 fn test_create_stream_should_emit_events() {
     let vars = SetupStreamTest::setup(2000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
@@ -121,7 +121,7 @@ fn test_create_stream_should_emit_events() {
 fn test_second_stream_should_have_incremented_id() {
     let vars = SetupStreamTest::setup(2000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
@@ -148,7 +148,7 @@ fn test_second_stream_should_have_incremented_id() {
 fn test_stream_should_revert_when_start_date_is_equal_to_end_date() {
     let vars = SetupStreamTest::setup(2000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
@@ -173,7 +173,7 @@ fn test_stream_should_revert_when_start_date_is_equal_to_end_date() {
 fn test_stream_should_revert_when_start_date_is_greater_than_end_date() {
     let vars = SetupStreamTest::setup(2000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
@@ -198,7 +198,7 @@ fn test_stream_should_revert_when_start_date_is_greater_than_end_date() {
 fn test_stream_should_revert_when_cliff_date_is_less_than_start_date() {
     let vars = SetupStreamTest::setup(2000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
@@ -223,7 +223,7 @@ fn test_stream_should_revert_when_cliff_date_is_less_than_start_date() {
 fn test_stream_should_revert_when_amount_is_zero() {
     let vars = SetupStreamTest::setup(2000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
@@ -248,7 +248,7 @@ fn test_stream_should_revert_when_amount_is_zero() {
 fn test_stream_should_revert_when_amount_is_negative() {
     let vars = SetupStreamTest::setup(2000);
 
-    let receiver = Address::random(&vars.env);
+    let receiver = Address::generate(&vars.env);
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::StreamInputType {
