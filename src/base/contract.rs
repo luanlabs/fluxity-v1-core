@@ -38,11 +38,7 @@ impl FluxityTrait for Fluxity {
     /// fluxity_client::get_stream(&stream_id);
     /// ```
     fn get_stream(e: Env, id: u64) -> Result<types::StreamType, errors::CustomErrors> {
-        match e
-            .storage()
-            .persistent()
-            .get(&data_key::DataKey::LinearStream(id))
-        {
+        match e.storage().persistent().get(&data_key::DataKey::Stream(id)) {
             None => Err(errors::CustomErrors::StreamNotFound),
             Some(stream) => Ok(stream),
         }
@@ -153,6 +149,7 @@ impl FluxityTrait for Fluxity {
         let receiver_amount = amounts.receiver_amount - stream.withdrawn;
 
         stream.is_cancelled = true;
+        stream.cancelled_date = current_date;
         stream.withdrawn = amounts.receiver_amount;
 
         storage::set_stream(&e, id, &stream);

@@ -48,14 +48,7 @@ pub fn calculate_vesting_amounts(
     rate: Rate,
     amount: i128,
 ) -> Amounts {
-    if current_date <= start_date {
-        return Amounts {
-            sender_amount: amount,
-            receiver_amount: 0,
-        };
-    }
-
-    if current_date <= cliff_date {
+    if current_date <= start_date || current_date <= cliff_date {
         return Amounts {
             sender_amount: amount,
             receiver_amount: 0,
