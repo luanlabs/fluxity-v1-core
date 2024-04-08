@@ -13,8 +13,8 @@ use crate::{
 fn test_stream_should_be_cancelled_after_creation() {
     let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
-    let amounts = vars.contract.cancel_stream(&id);
-    let stream = vars.contract.get_stream(&id);
+    let amounts = vars.contract.cancel_lockup(&id);
+    let stream = vars.contract.get_lockup(&id);
 
     assert_eq!(vars.token.balance(&vars.contract.address), 0);
     assert_eq!(vars.token.balance(&vars.admin.clone()), vars.amount);
@@ -28,7 +28,7 @@ fn test_stream_should_be_cancelled_after_creation() {
 fn test_cancel_stream_should_emit_event() {
     let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
-    vars.contract.cancel_stream(&id);
+    vars.contract.cancel_lockup(&id);
 
     let events = vars.env.events().all();
     assert!(events.contains((
@@ -46,8 +46,8 @@ fn test_cancel_stream_should_transfer_tokens_to_both_sides() {
     vars.move_ledger_timestamp_to(new_timestamp);
     assert_eq!(vars.env.ledger().get().timestamp, new_timestamp);
 
-    let amounts = vars.contract.cancel_stream(&id);
-    let stream = vars.contract.get_stream(&id);
+    let amounts = vars.contract.cancel_lockup(&id);
+    let stream = vars.contract.get_lockup(&id);
 
     assert_eq!(vars.token.balance(&vars.contract.address), 0);
     assert_eq!(vars.token.balance(&vars.admin.clone()), vars.amount / 2);
@@ -63,10 +63,10 @@ fn test_cancel_stream_should_transfer_tokens_to_both_sides() {
 fn test_cancel_stream_should_revert_when_stream_is_already_cancelled() {
     let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
-    vars.contract.cancel_stream(&id);
-    let result = vars.contract.try_cancel_stream(&id);
+    vars.contract.cancel_lockup(&id);
+    let result = vars.contract.try_cancel_lockup(&id);
 
-    assert_eq!(result, Err(Ok(errors::CustomErrors::StreamAlreadyCanceled)));
+    assert_eq!(result, Err(Ok(errors::CustomErrors::LockupAlreadyCanceled)));
 }
 
 #[test]
@@ -77,9 +77,9 @@ fn test_cancel_stream_should_revert_when_stream_is_already_settled() {
     vars.move_ledger_timestamp_to(new_timestamp);
     assert_eq!(vars.env.ledger().get().timestamp, new_timestamp);
 
-    let result = vars.contract.try_cancel_stream(&id);
+    let result = vars.contract.try_cancel_lockup(&id);
 
-    assert_eq!(result, Err(Ok(errors::CustomErrors::StreamAlreadySettled)));
+    assert_eq!(result, Err(Ok(errors::CustomErrors::LockupAlreadySettled)));
 }
 
 #[test]
@@ -93,10 +93,10 @@ fn test_cancel_stream_should_revert_when_cancellable_date_is_not_reached() {
     vars.move_ledger_timestamp_to(new_timestamp);
     assert_eq!(vars.env.ledger().get().timestamp, new_timestamp);
 
-    let result = vars.contract.try_cancel_stream(&id);
+    let result = vars.contract.try_cancel_lockup(&id);
 
     assert_eq!(
         result,
-        Err(Ok(errors::CustomErrors::StreamNotCancellableYet))
+        Err(Ok(errors::CustomErrors::LockupNotCancellableYet))
     );
 }

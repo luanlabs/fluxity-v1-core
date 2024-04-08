@@ -19,7 +19,7 @@ pub struct Amounts {
 
 #[contracttype]
 #[derive(Debug)]
-pub struct StreamInputType {
+pub struct StreamInput {
     pub sender: Address,
     pub receiver: Address,
     pub token: Address,
@@ -31,9 +31,9 @@ pub struct StreamInputType {
     pub rate: Rate,
 }
 
-impl Into<StreamType> for StreamInputType {
-    fn into(self) -> StreamType {
-        StreamType {
+impl Into<Lockup> for StreamInput {
+    fn into(self) -> Lockup {
+        Lockup {
             withdrawn: 0,
             is_cancelled: false,
             sender: self.sender.clone(),
@@ -54,7 +54,7 @@ impl Into<StreamType> for StreamInputType {
 
 #[contracttype]
 #[derive(Debug)]
-pub struct VestingInputType {
+pub struct VestingInput {
     pub sender: Address,
     pub receiver: Address,
     pub token: Address,
@@ -66,9 +66,9 @@ pub struct VestingInputType {
     pub rate: Rate,
 }
 
-impl Into<StreamType> for VestingInputType {
-    fn into(self) -> StreamType {
-        StreamType {
+impl Into<Lockup> for VestingInput {
+    fn into(self) -> Lockup {
+        Lockup {
             withdrawn: 0,
             is_cancelled: false,
             sender: self.sender.clone(),
@@ -88,7 +88,7 @@ impl Into<StreamType> for VestingInputType {
 
 #[contracttype]
 #[derive(Debug, PartialEq)]
-pub struct StreamType {
+pub struct Lockup {
     pub withdrawn: i128,
     pub is_cancelled: bool,
     pub sender: Address,

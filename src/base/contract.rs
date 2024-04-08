@@ -2,21 +2,13 @@ use soroban_sdk::{contract, contractimpl, Env};
 
 use super::*;
 
-pub trait FluxityTrait {
-    fn get_latest_stream_id(e: Env) -> u64;
-    fn get_stream(e: Env, id: u64) -> Result<types::StreamType, errors::CustomErrors>;
-    fn create_stream(e: Env, params: types::StreamInputType) -> Result<u64, errors::CustomErrors>;
-    fn cancel_stream(e: Env, id: u64) -> Result<(i128, i128), errors::CustomErrors>;
-    fn withdraw_stream(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors>;
-    fn create_vesting(e: Env, params: types::VestingInputType)
-        -> Result<u64, errors::CustomErrors>;
-}
+use interface::IFluxity;
 
 #[contract]
 pub struct Fluxity;
 
 #[contractimpl]
-impl FluxityTrait for Fluxity {
+impl IFluxity for Fluxity {
     /// Returns the latest stream id
     ///
     /// # Examples
@@ -24,8 +16,8 @@ impl FluxityTrait for Fluxity {
     /// ```
     /// let id = fluxity_client::get_latest_stream_id();
     /// ```
-    fn get_latest_stream_id(e: Env) -> u64 {
-        storage::get_latest_stream_id(&e)
+    fn get_latest_lockup_id(e: Env) -> u64 {
+        storage::get_latest_lockup_id(&e)
     }
 
     /// Returns an stream by id
@@ -37,9 +29,9 @@ impl FluxityTrait for Fluxity {
     ///
     /// fluxity_client::get_stream(&stream_id);
     /// ```
-    fn get_stream(e: Env, id: u64) -> Result<types::StreamType, errors::CustomErrors> {
-        match e.storage().persistent().get(&data_key::DataKey::Stream(id)) {
-            None => Err(errors::CustomErrors::StreamNotFound),
+    fn get_lockup(e: Env, id: u64) -> Result<types::Lockup, errors::CustomErrors> {
+        match e.storage().persistent().get(&data_key::DataKey::Lockup(id)) {
+            None => Err(errors::CustomErrors::LockupNotFound),
             Some(stream) => Ok(stream),
         }
     }
@@ -63,7 +55,7 @@ impl FluxityTrait for Fluxity {
     ///
     /// fluxity_client::create_stream(&params);
     /// ```
-    fn create_stream(e: Env, params: types::StreamInputType) -> Result<u64, errors::CustomErrors> {
+    fn create_stream(e: Env, params: types::StreamInput) -> Result<u64, errors::CustomErrors> {
         params.sender.require_auth();
 
         if params.amount <= 0 {
@@ -88,8 +80,8 @@ impl FluxityTrait for Fluxity {
 
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
-        let id = storage::get_latest_stream_id(&e);
-        let stream: types::StreamType = params.into();
+        let id = storage::get_latest_lockup_id(&e);
+        let stream: types::Lockup = params.into();
 
         storage::set_stream(&e, id, &stream);
         storage::increment_latest_stream_id(&e, &id);
@@ -107,23 +99,23 @@ impl FluxityTrait for Fluxity {
     ///
     /// fluxity_client::cancel_stream(&stream_id);
     /// ```
-    fn cancel_stream(e: Env, id: u64) -> Result<(i128, i128), errors::CustomErrors> {
-        let mut stream = storage::get_stream_by_id(&e, &id).unwrap();
+    fn cancel_lockup(e: Env, id: u64) -> Result<(i128, i128), errors::CustomErrors> {
+        let mut stream = storage::get_lockup_by_id(&e, &id).unwrap();
 
         stream.sender.require_auth();
 
         if stream.is_cancelled {
-            return Err(errors::CustomErrors::StreamAlreadyCanceled);
+            return Err(errors::CustomErrors::LockupAlreadyCanceled);
         }
 
         let current_date = e.ledger().timestamp();
 
         if stream.end_date <= current_date {
-            return Err(errors::CustomErrors::StreamAlreadySettled);
+            return Err(errors::CustomErrors::LockupAlreadySettled);
         }
 
         if stream.cancellable_date > current_date {
-            return Err(errors::CustomErrors::StreamNotCancellableYet);
+            return Err(errors::CustomErrors::LockupNotCancellableYet);
         }
 
         let mut amounts = utils::calculate_stream_amounts(
@@ -162,7 +154,7 @@ impl FluxityTrait for Fluxity {
             token::transfer(&e, &stream.token, &stream.sender, &sender_amount);
         }
 
-        events::publish_stream_cancelled_event(&e, id);
+        events::publish_lockup_cancelled_event(&e, id);
 
         Ok((sender_amount, receiver_amount))
     }
@@ -177,15 +169,15 @@ impl FluxityTrait for Fluxity {
     ///
     /// fluxity_client::withdraw_stream(&stream_id, &amount_to_withdraw);
     /// ```
-    fn withdraw_stream(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
-        let mut stream = storage::get_stream_by_id(&e, &id).unwrap();
+    fn withdraw_lockup(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
+        let mut stream = storage::get_lockup_by_id(&e, &id).unwrap();
 
         if amount < 0 {
             return Err(errors::CustomErrors::AmountUnderflows);
         }
 
         if stream.is_cancelled {
-            return Err(errors::CustomErrors::StreamIsCanceled);
+            return Err(errors::CustomErrors::LockupIsCanceled);
         }
 
         stream.receiver.require_auth();
@@ -193,7 +185,7 @@ impl FluxityTrait for Fluxity {
         let current_date = e.ledger().timestamp();
 
         if current_date <= stream.start_date {
-            return Err(errors::CustomErrors::StreamNotStartedYet);
+            return Err(errors::CustomErrors::LockupNotStartedYet);
         }
 
         if current_date <= stream.cliff_date {
@@ -237,7 +229,7 @@ impl FluxityTrait for Fluxity {
 
         token::transfer(&e, &stream.token, &stream.receiver, &amount_to_transfer);
 
-        events::publish_stream_withdrawn_event(&e, id);
+        events::publish_lockup_withdrawn_event(&e, id);
 
         Ok(amount_to_transfer)
     }
@@ -261,10 +253,7 @@ impl FluxityTrait for Fluxity {
     ///
     /// fluxity_client::create_vesting(&params);
     /// ```
-    fn create_vesting(
-        e: Env,
-        params: types::VestingInputType,
-    ) -> Result<u64, errors::CustomErrors> {
+    fn create_vesting(e: Env, params: types::VestingInput) -> Result<u64, errors::CustomErrors> {
         params.sender.require_auth();
 
         if params.amount <= 0 {
@@ -289,8 +278,8 @@ impl FluxityTrait for Fluxity {
 
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
-        let id = storage::get_latest_stream_id(&e);
-        let stream: types::StreamType = params.into();
+        let id = storage::get_latest_lockup_id(&e);
+        let stream: types::Lockup = params.into();
 
         storage::set_stream(&e, id, &stream);
         storage::increment_latest_stream_id(&e, &id);
