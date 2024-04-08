@@ -23,7 +23,7 @@ pub fn get_latest_lockup_id(e: &Env) -> u64 {
         .unwrap_or(0)
 }
 
-pub fn increment_latest_stream_id(e: &Env, id: &u64) {
+pub fn increment_latest_lockup_id(e: &Env, id: &u64) {
     e.storage()
         .instance()
         .set(&data_key::DataKey::LatestLockupId, &(id + 1));
@@ -31,7 +31,7 @@ pub fn increment_latest_stream_id(e: &Env, id: &u64) {
     extend_contract_ttl(&e);
 }
 
-pub fn set_stream(e: &Env, id: u64, stream: &types::Lockup) {
+pub fn set_lockup(e: &Env, id: u64, stream: &types::Lockup) {
     let key = data_key::DataKey::Lockup(id);
 
     e.storage().persistent().set(&key, stream);

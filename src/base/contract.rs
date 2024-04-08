@@ -22,19 +22,19 @@ impl IFluxity for Fluxity {
         storage::get_latest_lockup_id(&e)
     }
 
-    /// Returns an stream by id
+    /// Returns a lockup by id
     ///
     /// # Examples
     ///
     /// ```
-    /// let stream_id = 20;
+    /// let lockup_id = 20;
     ///
-    /// fluxity_client::get_stream(&stream_id);
+    /// fluxity_client::get_lockup(&stream_id);
     /// ```
     fn get_lockup(e: Env, id: u64) -> Result<types::Lockup, errors::CustomErrors> {
         match e.storage().persistent().get(&data_key::DataKey::Lockup(id)) {
             None => Err(errors::CustomErrors::LockupNotFound),
-            Some(stream) => Ok(stream),
+            Some(lockup) => Ok(lockup),
         }
     }
 
@@ -43,7 +43,7 @@ impl IFluxity for Fluxity {
     /// # Examples
     ///
     /// ```
-    /// let params = LinearStreamInputType {
+    /// let params = StreamInput {
     ///     sender: Address::random(&env),
     ///     receiver: Address::random(&env),
     ///     token: Address::random(&env),
@@ -83,77 +83,77 @@ impl IFluxity for Fluxity {
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
         let id = storage::get_latest_lockup_id(&e);
-        let stream: types::Lockup = params.into();
+        let lockup: types::Lockup = params.into();
 
-        storage::set_stream(&e, id, &stream);
-        storage::increment_latest_stream_id(&e, &id);
+        storage::set_lockup(&e, id, &lockup);
+        storage::increment_latest_lockup_id(&e, &id);
         events::publish_stream_created_event(&e, id);
 
         Ok(id)
     }
 
-    /// Cancels an stream
+    /// Cancels a lockup
     ///
     /// # Examples
     ///
     /// ```
-    /// let stream_id = 20;
+    /// let lockup_id = 20;
     ///
-    /// fluxity_client::cancel_stream(&stream_id);
+    /// fluxity_client::cancel_lockup(&lockup_id);
     /// ```
     fn cancel_lockup(e: Env, id: u64) -> Result<(i128, i128), errors::CustomErrors> {
-        let mut stream = storage::get_lockup_by_id(&e, &id).unwrap();
+        let mut lockup = storage::get_lockup_by_id(&e, &id).unwrap();
 
-        stream.sender.require_auth();
+        lockup.sender.require_auth();
 
-        if stream.is_cancelled {
+        if lockup.is_cancelled {
             return Err(errors::CustomErrors::LockupAlreadyCanceled);
         }
 
         let current_date = e.ledger().timestamp();
 
-        if stream.end_date <= current_date {
+        if lockup.end_date <= current_date {
             return Err(errors::CustomErrors::LockupAlreadySettled);
         }
 
-        if stream.cancellable_date > current_date {
+        if lockup.cancellable_date > current_date {
             return Err(errors::CustomErrors::LockupNotCancellableYet);
         }
 
         let mut amounts = utils::calculate_stream_amounts(
-            stream.start_date,
-            stream.end_date,
-            stream.cliff_date,
+            lockup.start_date,
+            lockup.end_date,
+            lockup.cliff_date,
             current_date,
-            stream.amount,
+            lockup.amount,
         );
 
-        if stream.is_vesting {
+        if lockup.is_vesting {
             amounts = utils::calculate_vesting_amounts(
-                stream.start_date,
-                stream.end_date,
-                stream.cliff_date,
+                lockup.start_date,
+                lockup.end_date,
+                lockup.cliff_date,
                 current_date,
-                stream.rate,
-                stream.amount,
+                lockup.rate,
+                lockup.amount,
             );
         }
 
         let sender_amount = amounts.sender_amount;
-        let receiver_amount = amounts.receiver_amount - stream.withdrawn;
+        let receiver_amount = amounts.receiver_amount - lockup.withdrawn;
 
-        stream.is_cancelled = true;
-        stream.cancelled_date = current_date;
-        stream.withdrawn = amounts.receiver_amount;
+        lockup.is_cancelled = true;
+        lockup.cancelled_date = current_date;
+        lockup.withdrawn = amounts.receiver_amount;
 
-        storage::set_stream(&e, id, &stream);
+        storage::set_lockup(&e, id, &lockup);
 
         if receiver_amount > 0 {
-            token::transfer(&e, &stream.token, &stream.receiver, &receiver_amount);
+            token::transfer(&e, &lockup.token, &lockup.receiver, &receiver_amount);
         }
 
         if sender_amount > 0 {
-            token::transfer(&e, &stream.token, &stream.sender, &sender_amount);
+            token::transfer(&e, &lockup.token, &lockup.sender, &sender_amount);
         }
 
         events::publish_lockup_cancelled_event(&e, id);
@@ -161,57 +161,57 @@ impl IFluxity for Fluxity {
         Ok((sender_amount, receiver_amount))
     }
 
-    /// Withdraws from an stream
+    /// Withdraws from a lockup, anyone call call this function even for others
     ///
     /// # Examples
     ///
     /// ```
-    /// let stream_id = 20;
+    /// let lockup_id = 20;
     /// let amount_to_withdraw = 30000000 // Represents 3 in a 7-decimal token
     ///
-    /// fluxity_client::withdraw_stream(&stream_id, &amount_to_withdraw);
+    /// fluxity_client::withdraw_lockup(&stream_id, &amount_to_withdraw);
     /// ```
     fn withdraw_lockup(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
-        let mut stream = storage::get_lockup_by_id(&e, &id).unwrap();
+        let mut lockup = storage::get_lockup_by_id(&e, &id).unwrap();
 
         if amount < 0 {
             return Err(errors::CustomErrors::AmountUnderflows);
         }
 
-        if stream.is_cancelled {
+        if lockup.is_cancelled {
             return Err(errors::CustomErrors::LockupIsCanceled);
         }
 
         let current_date = e.ledger().timestamp();
 
-        if current_date <= stream.start_date {
+        if current_date <= lockup.start_date {
             return Err(errors::CustomErrors::LockupNotStartedYet);
         }
 
-        if current_date <= stream.cliff_date {
+        if current_date <= lockup.cliff_date {
             return Ok(0);
         }
 
         let mut amounts = utils::calculate_stream_amounts(
-            stream.start_date,
-            stream.end_date,
-            stream.cliff_date,
+            lockup.start_date,
+            lockup.end_date,
+            lockup.cliff_date,
             current_date,
-            stream.amount,
+            lockup.amount,
         );
 
-        if stream.is_vesting {
+        if lockup.is_vesting {
             amounts = utils::calculate_vesting_amounts(
-                stream.start_date,
-                stream.end_date,
-                stream.cliff_date,
+                lockup.start_date,
+                lockup.end_date,
+                lockup.cliff_date,
                 current_date,
-                stream.rate,
-                stream.amount,
+                lockup.rate,
+                lockup.amount,
             );
         }
 
-        let withdrawable = amounts.receiver_amount - stream.withdrawn;
+        let withdrawable = amounts.receiver_amount - lockup.withdrawn;
 
         if withdrawable < amount {
             return Err(errors::CustomErrors::SpecifiedAmountIsGreaterThanWithdrawable);
@@ -223,11 +223,11 @@ impl IFluxity for Fluxity {
             amount_to_transfer = withdrawable;
         }
 
-        stream.withdrawn = stream.withdrawn + amount_to_transfer;
+        lockup.withdrawn = lockup.withdrawn + amount_to_transfer;
 
-        storage::set_stream(&e, id, &stream);
+        storage::set_lockup(&e, id, &lockup);
 
-        token::transfer(&e, &stream.token, &stream.receiver, &amount_to_transfer);
+        token::transfer(&e, &lockup.token, &lockup.receiver, &amount_to_transfer);
 
         events::publish_lockup_withdrawn_event(&e, id);
 
@@ -239,7 +239,7 @@ impl IFluxity for Fluxity {
     /// # Examples
     ///
     /// ```
-    /// let params = VestingInputType {
+    /// let params = VestingInput {
     ///     sender: Address::random(&env),
     ///     receiver: Address::random(&env),
     ///     token: Address::random(&env),
@@ -279,10 +279,10 @@ impl IFluxity for Fluxity {
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
         let id = storage::get_latest_lockup_id(&e);
-        let stream: types::Lockup = params.into();
+        let lockup: types::Lockup = params.into();
 
-        storage::set_stream(&e, id, &stream);
-        storage::increment_latest_stream_id(&e, &id);
+        storage::set_lockup(&e, id, &lockup);
+        storage::increment_latest_lockup_id(&e, &id);
         events::publish_vesting_created_event(&e, id);
 
         Ok(id)
@@ -315,7 +315,7 @@ impl IFluxity for Fluxity {
         lockup.amount = lockup.amount + amount;
         lockup.end_date = lockup.end_date + additional_duration;
 
-        storage::set_stream(&e, id, &lockup);
+        storage::set_lockup(&e, id, &lockup);
 
         events::publish_lockup_topup_event(&e, id);
 
