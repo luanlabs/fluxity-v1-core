@@ -19,3 +19,8 @@ pub fn publish_lockup_withdrawn_event(e: &Env, id: u64) {
     e.events()
         .publish((symbol_short!("LOCKUP"), symbol_short!("WITHDRAWN")), id);
 }
+
+pub fn publish_lockup_topup_event(e: &Env, id: u64) {
+    e.events()
+        .publish((symbol_short!("LOCKUP"), symbol_short!("TOPUP")), id);
+}

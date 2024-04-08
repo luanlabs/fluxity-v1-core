@@ -1,5 +1,7 @@
 use soroban_sdk::{contract, contractimpl, Env};
 
+use self::storage::get_lockup_by_id;
+
 use super::*;
 
 use interface::IFluxity;
@@ -180,8 +182,6 @@ impl IFluxity for Fluxity {
             return Err(errors::CustomErrors::LockupIsCanceled);
         }
 
-        stream.receiver.require_auth();
-
         let current_date = e.ledger().timestamp();
 
         if current_date <= stream.start_date {
@@ -286,5 +286,41 @@ impl IFluxity for Fluxity {
         events::publish_vesting_created_event(&e, id);
 
         Ok(id)
+    }
+
+    fn topup_lockup(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
+        let mut lockup = get_lockup_by_id(&e, &id).unwrap();
+
+        lockup.sender.require_auth();
+
+        if lockup.is_cancelled {
+            return Err(errors::CustomErrors::LockupIsCanceled);
+        }
+
+        let current_date = e.ledger().timestamp();
+
+        if lockup.end_date < current_date {
+            return Err(errors::CustomErrors::LockupAlreadySettled);
+        }
+
+        // TODO: fix additional
+        let additional_duration = 5;
+        // let additional_duration = calculate_additional_time(&lockup, &amount);
+
+        // TODO: fix check
+        if lockup.cancelled_date == lockup.end_date {
+            lockup.cancellable_date = lockup.cancellable_date + additional_duration;
+        }
+
+        lockup.amount = lockup.amount + amount;
+        lockup.end_date = lockup.end_date + additional_duration;
+
+        storage::set_stream(&e, id, &lockup);
+
+        events::publish_lockup_topup_event(&e, id);
+
+        // if lockup.
+        // TODO: implement this and the natspec
+        Ok(lockup.amount)
     }
 }
