@@ -87,7 +87,7 @@ impl IFluxity for Fluxity {
 
         storage::set_lockup(&e, id, &lockup);
         storage::increment_latest_lockup_id(&e, &id);
-        events::publish_stream_created_event(&e, id);
+        events::publish_lockup_created_event(&e, id);
 
         Ok(id)
     }
@@ -283,7 +283,7 @@ impl IFluxity for Fluxity {
 
         storage::set_lockup(&e, id, &lockup);
         storage::increment_latest_lockup_id(&e, &id);
-        events::publish_vesting_created_event(&e, id);
+        events::publish_lockup_created_event(&e, id);
 
         Ok(id)
     }
