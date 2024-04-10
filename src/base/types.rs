@@ -19,7 +19,7 @@ pub struct Amounts {
 
 #[contracttype]
 #[derive(Debug)]
-pub struct StreamInput {
+pub struct LockupInput {
     pub sender: Address,
     pub receiver: Address,
     pub token: Address,
@@ -29,61 +29,6 @@ pub struct StreamInput {
     pub start_date: u64,
     pub end_date: u64,
     pub rate: Rate,
-}
-
-impl Into<Lockup> for StreamInput {
-    fn into(self) -> Lockup {
-        Lockup {
-            withdrawn: 0,
-            is_cancelled: false,
-            sender: self.sender.clone(),
-            receiver: self.receiver.clone(),
-            token: self.token.clone(),
-            amount: self.amount,
-            cancellable_date: self.cancellable_date,
-            cancelled_date: 0,
-            cliff_date: self.cliff_date,
-            start_date: self.start_date,
-            end_date: self.end_date,
-            // rate: Rate::Daily,
-            rate: self.rate.clone(),
-            is_vesting: false,
-        }
-    }
-}
-
-#[contracttype]
-#[derive(Debug)]
-pub struct VestingInput {
-    pub sender: Address,
-    pub receiver: Address,
-    pub token: Address,
-    pub amount: i128,
-    pub cancellable_date: u64,
-    pub cliff_date: u64,
-    pub start_date: u64,
-    pub end_date: u64,
-    pub rate: Rate,
-}
-
-impl Into<Lockup> for VestingInput {
-    fn into(self) -> Lockup {
-        Lockup {
-            withdrawn: 0,
-            is_cancelled: false,
-            sender: self.sender.clone(),
-            receiver: self.receiver.clone(),
-            token: self.token.clone(),
-            amount: self.amount,
-            cancellable_date: self.cancellable_date,
-            cancelled_date: 0,
-            cliff_date: self.cliff_date,
-            start_date: self.start_date,
-            end_date: self.end_date,
-            rate: self.rate.clone(),
-            is_vesting: true,
-        }
-    }
 }
 
 #[contracttype]
@@ -102,4 +47,25 @@ pub struct Lockup {
     pub end_date: u64,
     pub rate: Rate,
     pub is_vesting: bool,
+}
+
+impl Into<Lockup> for LockupInput {
+    fn into(self) -> Lockup {
+        Lockup {
+            withdrawn: 0,
+            is_cancelled: false,
+            sender: self.sender.clone(),
+            receiver: self.receiver.clone(),
+            token: self.token.clone(),
+            amount: self.amount,
+            cancellable_date: self.cancellable_date,
+            cancelled_date: 0,
+            cliff_date: self.cliff_date,
+            start_date: self.start_date,
+            end_date: self.end_date,
+            // rate: Rate::Daily,
+            rate: self.rate.clone(),
+            is_vesting: false,
+        }
+    }
 }

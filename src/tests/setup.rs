@@ -5,7 +5,7 @@ use soroban_sdk::{
 };
 
 use crate::{
-    base::types::{Rate, VestingInputType},
+    base::types::{LockupInput, Rate},
     Fluxity, FluxityClient,
 };
 
@@ -93,7 +93,7 @@ impl<'a> SetupStreamTest<'a> {
         let receiver = Address::generate(&vars.env);
         let now = vars.env.ledger().timestamp();
 
-        let params = crate::base::types::StreamInputType {
+        let params = crate::base::types::LockupInput {
             sender: vars.admin.clone(),
             receiver,
             token: vars.token.address.clone(),
@@ -107,7 +107,7 @@ impl<'a> SetupStreamTest<'a> {
 
         let id = vars.contract.create_stream(&params);
 
-        assert_eq!(vars.contract.get_stream(&0).sender, vars.admin.clone());
+        assert_eq!(vars.contract.get_lockup(&0).sender, vars.admin.clone());
         assert_eq!(vars.token.decimals(), 7);
         assert_eq!(vars.token.balance(&vars.admin), 0);
         assert_eq!(vars.token.balance(&vars.contract.address), vars.amount);
@@ -121,7 +121,7 @@ impl<'a> SetupStreamTest<'a> {
         let receiver = Address::generate(&vars.env);
         let now = vars.env.ledger().timestamp();
 
-        let params = VestingInputType {
+        let params = LockupInput {
             sender: vars.admin.clone(),
             receiver,
             amount: fields.amount,

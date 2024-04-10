@@ -3,7 +3,7 @@ use soroban_sdk::{testutils::Address as _, Address};
 use super::setup::SetupStreamTest;
 use crate::base::{
     errors,
-    types::{Rate, VestingInputType},
+    types::{LockupInput, Rate},
 };
 
 #[test]
@@ -14,7 +14,7 @@ fn test_create_vesting_should_work() {
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
-    let params = VestingInputType {
+    let params = LockupInput {
         amount: 1000,
         sender: vars.admin.clone(),
         receiver,
@@ -37,7 +37,7 @@ fn test_create_vesting_should_store_is_vesting_to_true() {
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
-    let params = VestingInputType {
+    let params = LockupInput {
         amount: 1000,
         sender: vars.admin.clone(),
         receiver,
@@ -51,7 +51,7 @@ fn test_create_vesting_should_store_is_vesting_to_true() {
 
     let id = vars.contract.create_vesting(&params);
 
-    let stream = vars.contract.get_stream(&id);
+    let stream = vars.contract.get_lockup(&id);
 
     assert_eq!(stream.is_vesting, true);
 }
@@ -64,7 +64,7 @@ fn test_create_vesting_should_revert_when_amount_is_negative() {
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
-    let params = VestingInputType {
+    let params = LockupInput {
         amount: -100,
         sender: vars.admin.clone(),
         receiver,
@@ -89,7 +89,7 @@ fn test_create_vesting_should_revert_when_amount_is_zero() {
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
-    let params = VestingInputType {
+    let params = LockupInput {
         amount: 0,
         sender: vars.admin.clone(),
         receiver,
@@ -113,7 +113,7 @@ fn test_create_vesting_should_revert_when_sender_and_receiver_are_the_same() {
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
-    let params = VestingInputType {
+    let params = LockupInput {
         amount: 1000,
         sender: vars.admin.clone(),
         receiver: vars.admin.clone(),
@@ -138,7 +138,7 @@ fn test_create_vesting_should_revert_when_start_date_is_equal_to_end_date() {
     let now = vars.env.ledger().timestamp();
     // let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
-    let params = VestingInputType {
+    let params = LockupInput {
         amount: 1000,
         sender: vars.admin.clone(),
         receiver,
@@ -163,7 +163,7 @@ fn test_create_vesting_should_revert_when_cancellable_date_is_greater_than_end_d
     let now = vars.env.ledger().timestamp();
     let end_date = Rate::Daily as u64 * 2; // 2 days from now
 
-    let params = VestingInputType {
+    let params = LockupInput {
         amount: 1000,
         sender: vars.admin.clone(),
         receiver,

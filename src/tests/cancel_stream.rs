@@ -33,7 +33,7 @@ fn test_cancel_stream_should_emit_event() {
     let events = vars.env.events().all();
     assert!(events.contains((
         vars.contract.address.clone(),
-        (symbol_short!("STREAM"), symbol_short!("CANCELLED")).into_val(&vars.env),
+        (symbol_short!("LOCKUP"), symbol_short!("CANCELLED")).into_val(&vars.env),
         id.into_val(&vars.env)
     )))
 }

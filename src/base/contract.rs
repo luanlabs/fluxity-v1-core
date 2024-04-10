@@ -57,7 +57,7 @@ impl IFluxity for Fluxity {
     ///
     /// fluxity_client::create_stream(&params);
     /// ```
-    fn create_stream(e: Env, params: types::StreamInput) -> Result<u64, errors::CustomErrors> {
+    fn create_stream(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
         params.sender.require_auth();
 
         if params.amount <= 0 {
@@ -83,7 +83,9 @@ impl IFluxity for Fluxity {
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
         let id = storage::get_latest_lockup_id(&e);
-        let lockup: types::Lockup = params.into();
+        let mut lockup: types::Lockup = params.into();
+
+        lockup.is_vesting = false;
 
         storage::set_lockup(&e, id, &lockup);
         storage::increment_latest_lockup_id(&e, &id);
@@ -253,7 +255,7 @@ impl IFluxity for Fluxity {
     ///
     /// fluxity_client::create_vesting(&params);
     /// ```
-    fn create_vesting(e: Env, params: types::VestingInput) -> Result<u64, errors::CustomErrors> {
+    fn create_vesting(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
         params.sender.require_auth();
 
         if params.amount <= 0 {
@@ -279,7 +281,9 @@ impl IFluxity for Fluxity {
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
         let id = storage::get_latest_lockup_id(&e);
-        let lockup: types::Lockup = params.into();
+        let mut lockup: types::Lockup = params.into();
+
+        lockup.is_vesting = true;
 
         storage::set_lockup(&e, id, &lockup);
         storage::increment_latest_lockup_id(&e, &id);
