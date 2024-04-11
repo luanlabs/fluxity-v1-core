@@ -1,6 +1,6 @@
 use soroban_sdk::{contract, contractimpl, Env};
 
-use self::storage::get_lockup_by_id;
+use self::{storage::get_lockup_by_id, utils::calculate_additional_time};
 
 use super::*;
 
@@ -58,8 +58,6 @@ impl IFluxity for Fluxity {
     /// fluxity_client::create_stream(&params);
     /// ```
     fn create_stream(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
-        params.sender.require_auth();
-
         if params.amount <= 0 {
             return Err(errors::CustomErrors::InvalidAmount);
         }
@@ -256,8 +254,6 @@ impl IFluxity for Fluxity {
     /// fluxity_client::create_vesting(&params);
     /// ```
     fn create_vesting(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
-        params.sender.require_auth();
-
         if params.amount <= 0 {
             return Err(errors::CustomErrors::InvalidAmount);
         }
@@ -292,7 +288,17 @@ impl IFluxity for Fluxity {
         Ok(id)
     }
 
-    fn topup_lockup(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
+    /// Increases the duration and the amount of a lockup
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let lockup_id = 56;
+    /// let adding_amount = 700000000;
+    ///
+    /// fluxity_client::topup_lockup(lockup_id, adding_amount);
+    /// ```
+    fn topup_lockup(e: Env, id: u64, adding_amount: i128) -> Result<i128, errors::CustomErrors> {
         let mut lockup = get_lockup_by_id(&e, &id).unwrap();
 
         lockup.sender.require_auth();
@@ -307,24 +313,23 @@ impl IFluxity for Fluxity {
             return Err(errors::CustomErrors::LockupAlreadySettled);
         }
 
-        // TODO: fix additional
-        let additional_duration = 5;
-        // let additional_duration = calculate_additional_time(&lockup, &amount);
+        let additional_duration = calculate_additional_time(&lockup, adding_amount);
 
-        // TODO: fix check
         if lockup.cancelled_date == lockup.end_date {
             lockup.cancellable_date = lockup.cancellable_date + additional_duration;
         }
 
-        lockup.amount = lockup.amount + amount;
+        if lockup.cliff_date == lockup.end_date {
+            lockup.cliff_date = lockup.cliff_date + additional_duration;
+        }
+
+        lockup.amount = lockup.amount + adding_amount;
         lockup.end_date = lockup.end_date + additional_duration;
 
         storage::set_lockup(&e, id, &lockup);
 
         events::publish_lockup_topup_event(&e, id);
 
-        // if lockup.
-        // TODO: implement this and the natspec
         Ok(lockup.amount)
     }
 }

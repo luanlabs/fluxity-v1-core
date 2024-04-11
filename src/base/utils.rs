@@ -1,4 +1,6 @@
-use super::types::{Amounts, Rate};
+use core::fmt::write;
+
+use super::types::{Amounts, Lockup, Rate};
 
 pub fn calculate_stream_amounts(
     start_date: u64,
@@ -67,10 +69,9 @@ pub fn calculate_vesting_amounts(
     let rate_in_seconds = rate as i128;
 
     let times = proceeded_date / rate_in_seconds;
-    let one_time_amount = total_date / amount * rate_in_seconds;
+    let one_time_amount = amount * rate_in_seconds / total_date;
 
     // TODO: if duration / rate is not dividable, what happens? check all of them
-    // TODO: FIX THIS
     let receiver_amount = times * one_time_amount;
     let sender_amount = amount - receiver_amount;
 
@@ -78,4 +79,12 @@ pub fn calculate_vesting_amounts(
         sender_amount,
         receiver_amount,
     }
+}
+
+pub fn calculate_additional_time(lockup: &Lockup, adding_amount: i128) -> u64 {
+    let duration: i128 = (lockup.end_date - lockup.start_date).into();
+
+    (adding_amount * duration / lockup.amount)
+        .try_into()
+        .unwrap()
 }
