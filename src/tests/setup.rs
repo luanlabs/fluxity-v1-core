@@ -65,7 +65,7 @@ impl<'a> SetupStreamTest<'a> {
 
         env.mock_all_auths();
 
-        let admin = Address::generate(&env);
+        let admin = Address::random(&env);
 
         let token_id = env.register_stellar_asset_contract(admin.clone());
         let token_client = soroban_sdk::token::Client::new(&env, &token_id);
@@ -90,7 +90,7 @@ impl<'a> SetupStreamTest<'a> {
     pub fn setup_with_stream_created(fields: StreamFields) -> (Self, u64) {
         let vars = Self::setup(fields.amount);
 
-        let receiver = Address::generate(&vars.env);
+        let receiver = Address::random(&vars.env);
         let now = vars.env.ledger().timestamp();
 
         let params = crate::base::types::LockupInput {
@@ -118,7 +118,7 @@ impl<'a> SetupStreamTest<'a> {
     pub fn setup_with_vesting_created(fields: VestingFields) -> (Self, u64) {
         let vars = Self::setup(fields.amount);
 
-        let receiver = Address::generate(&vars.env);
+        let receiver = Address::random(&vars.env);
         let now = vars.env.ledger().timestamp();
 
         let params = LockupInput {

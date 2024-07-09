@@ -8,11 +8,9 @@ const LIFETIME_THRESHOLD: u32 = 30 * DAY_IN_LEDGERS;
 pub fn extend_data_ttl(e: &Env, key: &DataKey) {
     e.storage()
         .persistent()
-        .extend_ttl(key, LIFETIME_THRESHOLD, BUMP_AMOUNT);
+        .bump(key, LIFETIME_THRESHOLD, BUMP_AMOUNT);
 }
 
 pub fn extend_contract_ttl(e: &Env) {
-    e.storage()
-        .instance()
-        .extend_ttl(LIFETIME_THRESHOLD, BUMP_AMOUNT);
+    e.storage().instance().bump(LIFETIME_THRESHOLD, BUMP_AMOUNT);
 }
