@@ -1,4 +1,7 @@
-use super::types::{Amounts, Lockup, Rate};
+use super::{
+    constants::MONTH_IN_SECONDS,
+    types::{Amounts, Lockup, Rate},
+};
 
 pub fn calculate_stream_amounts(
     start_date: u64,
@@ -85,4 +88,13 @@ pub fn calculate_additional_time(lockup: &Lockup, adding_amount: i128) -> u64 {
     (adding_amount * duration / lockup.amount)
         .try_into()
         .unwrap()
+}
+
+pub fn calculate_lockup_fee(start_date: u64, end_date: u64, monthly_fee: i128) -> i128 {
+    let lockup_duration = end_date - start_date;
+    let months = lockup_duration / MONTH_IN_SECONDS;
+
+    let months_plus: i128 = (months + 1).into();
+
+    months_plus * monthly_fee
 }

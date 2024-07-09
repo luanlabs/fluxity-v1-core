@@ -1,4 +1,5 @@
-use soroban_sdk::{contract, contractimpl, Env};
+use soroban_sdk::{contract, contractimpl, Address, Env};
+use token::take_xlm_fee;
 
 use self::{storage::get_lockup_by_id, utils::calculate_additional_time};
 
@@ -11,7 +12,52 @@ pub struct Fluxity;
 
 #[contractimpl]
 impl IFluxity for Fluxity {
-    /// Returns the latest stream id
+    /// Initializes the contract and sets admin for it
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let id = fluxity_client::initialize();
+    /// ```
+    fn initialize(e: Env, admin: Address, xlm: Address) {
+        storage::set_admin(&e, admin);
+        storage::set_xlm(&e, xlm);
+    }
+
+    /// Returns the admin of the Fluxity contract
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let id = fluxity_client::get_admin();
+    /// ```
+    fn get_admin(e: Env) -> Address {
+        storage::get_admin(&e)
+    }
+
+    /// Sets the monthly fee for lockups. Only the admin can call this
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let id = fluxity_client::set_monthly_fee(200);
+    /// ```
+    fn set_monthly_fee(e: Env, fee: i128) {
+        storage::set_monthly_fee(&e, fee);
+    }
+
+    /// Returns the monthly fee for lockups
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let id = fluxity_client::get_monthly_fee();
+    /// ```
+    fn get_monthly_fee(e: Env) -> i128 {
+        storage::get_monthly_fee(&e)
+    }
+
+    /// Returns the latest lockup id
     ///
     /// # Examples
     ///
@@ -77,6 +123,13 @@ impl IFluxity for Fluxity {
         if &params.cliff_date < &params.start_date || &params.cliff_date > &params.end_date {
             return Err(errors::CustomErrors::InvalidCliffDate);
         }
+
+        take_xlm_fee(
+            &e,
+            params.start_date,
+            params.end_date,
+            params.sender.clone(),
+        );
 
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
