@@ -69,8 +69,16 @@ impl IFluxity for Fluxity {
         storage::get_latest_lockup_id(&e)
     }
 
+    /// Returns the fee calculated based on the start and end time of a lockup
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let id = fluxity_client::calculate_fee();
+    /// ```
     fn calculate_fee(e: Env, start_date: u64, end_date: u64) -> i128 {
         let monthly_fee = storage::get_monthly_fee(&e);
+
         calculate_lockup_fee(start_date, end_date, monthly_fee)
     }
 
