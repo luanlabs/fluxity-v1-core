@@ -1,5 +1,6 @@
 use soroban_sdk::{contract, contractimpl, Address, Env};
 use token::take_xlm_fee;
+use utils::calculate_lockup_fee;
 
 use self::{storage::get_lockup_by_id, utils::calculate_additional_time};
 
@@ -66,6 +67,11 @@ impl IFluxity for Fluxity {
     /// ```
     fn get_latest_lockup_id(e: Env) -> u64 {
         storage::get_latest_lockup_id(&e)
+    }
+
+    fn calculate_fee(e: Env, start_date: u64, end_date: u64) -> i128 {
+        let monthly_fee = storage::get_monthly_fee(&e);
+        calculate_lockup_fee(start_date, end_date, monthly_fee)
     }
 
     /// Returns a lockup by id
@@ -326,6 +332,13 @@ impl IFluxity for Fluxity {
         if &params.cliff_date < &params.start_date || &params.cliff_date > &params.end_date {
             return Err(errors::CustomErrors::InvalidCliffDate);
         }
+
+        take_xlm_fee(
+            &e,
+            params.start_date,
+            params.end_date,
+            params.sender.clone(),
+        );
 
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 

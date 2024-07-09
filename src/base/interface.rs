@@ -8,6 +8,7 @@ pub trait IFluxity {
     fn set_monthly_fee(e: Env, fee: i128);
     fn get_monthly_fee(e: Env) -> i128;
     fn get_latest_lockup_id(e: Env) -> u64;
+    fn calculate_fee(e: Env, start_date: u64, end_date: u64) -> i128;
     fn get_lockup(e: Env, id: u64) -> Result<types::Lockup, errors::CustomErrors>;
     fn create_stream(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors>;
     fn create_vesting(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors>;
