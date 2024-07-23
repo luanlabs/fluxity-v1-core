@@ -30,10 +30,21 @@ impl IFluxity for Fluxity {
     /// # Examples
     ///
     /// ```
-    /// let id = fluxity_client::get_admin();
+    /// let admin = fluxity_client::get_admin();
     /// ```
     fn get_admin(e: Env) -> Address {
         storage::get_admin(&e)
+    }
+
+    /// Returns the address of the XLM token
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let xlm_address = fluxity_client::get_xlm();
+    /// ```
+    fn get_xlm(e: Env) -> Address {
+        storage::get_xlm(&e)
     }
 
     /// Sets the monthly fee for lockups. Only the admin can call this
@@ -52,7 +63,7 @@ impl IFluxity for Fluxity {
     /// # Examples
     ///
     /// ```
-    /// let id = fluxity_client::get_monthly_fee();
+    /// let fee = fluxity_client::get_monthly_fee();
     /// ```
     fn get_monthly_fee(e: Env) -> i128 {
         storage::get_monthly_fee(&e)
@@ -74,7 +85,7 @@ impl IFluxity for Fluxity {
     /// # Examples
     ///
     /// ```
-    /// let id = fluxity_client::calculate_fee();
+    /// let fee = fluxity_client::calculate_fee();
     /// ```
     fn calculate_fee(e: Env, start_date: u64, end_date: u64) -> i128 {
         let monthly_fee = storage::get_monthly_fee(&e);

@@ -5,6 +5,7 @@ use super::{errors, types};
 pub trait IFluxity {
     fn initialize(e: Env, admin: Address, xlm: Address);
     fn get_admin(e: Env) -> Address;
+    fn get_xlm(e: Env) -> Address;
     fn set_monthly_fee(e: Env, fee: i128);
     fn get_monthly_fee(e: Env) -> i128;
     fn get_latest_lockup_id(e: Env) -> u64;

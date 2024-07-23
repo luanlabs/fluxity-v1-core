@@ -46,7 +46,6 @@ pub fn set_admin(e: &Env, admin: Address) {
 
     e.storage().instance().set(&key, &admin);
 
-    extend_data_ttl(&e, &key);
     extend_contract_ttl(&e);
 }
 
@@ -61,7 +60,6 @@ pub fn set_monthly_fee(e: &Env, fee: i128) {
 
     e.storage().instance().set(&key, &fee);
 
-    extend_data_ttl(&e, &key);
     extend_contract_ttl(&e);
 }
 
@@ -76,7 +74,6 @@ pub fn set_xlm(e: &Env, xlm: Address) {
 
     e.storage().instance().set(&key, &xlm);
 
-    extend_data_ttl(&e, &key);
     extend_contract_ttl(&e);
 }
 
