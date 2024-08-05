@@ -1,5 +1,3 @@
-use core::fmt::write;
-
 use super::types::{Amounts, Lockup, Rate};
 
 pub fn calculate_stream_amounts(

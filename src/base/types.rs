@@ -29,6 +29,7 @@ pub struct LockupInput {
     pub start_date: u64,
     pub end_date: u64,
     pub rate: Rate,
+    pub is_vesting: bool,
 }
 
 #[contracttype]
