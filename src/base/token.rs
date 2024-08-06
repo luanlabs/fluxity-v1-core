@@ -1,7 +1,4 @@
-use soroban_sdk::{
-    token::{self, Client},
-    Address, Env,
-};
+use soroban_sdk::{token::Client, Address, Env};
 
 use super::{
     storage::{get_monthly_fee, get_xlm},

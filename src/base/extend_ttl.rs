@@ -7,9 +7,11 @@ use soroban_sdk::Env;
 pub fn extend_data_ttl(e: &Env, key: &DataKey) {
     e.storage()
         .persistent()
-        .bump(key, LIFETIME_THRESHOLD, BUMP_AMOUNT);
+        .extend_ttl(key, LIFETIME_THRESHOLD, BUMP_AMOUNT);
 }
 
 pub fn extend_contract_ttl(e: &Env) {
-    e.storage().instance().bump(LIFETIME_THRESHOLD, BUMP_AMOUNT);
+    e.storage()
+        .instance()
+        .extend_ttl(LIFETIME_THRESHOLD, BUMP_AMOUNT);
 }

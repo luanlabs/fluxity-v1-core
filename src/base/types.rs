@@ -66,7 +66,7 @@ impl Into<Lockup> for LockupInput {
             end_date: self.end_date,
             // rate: Rate::Daily,
             rate: self.rate.clone(),
-            is_vesting: false,
+            is_vesting: self.is_vesting,
         }
     }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "fluxity-v1-core"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [lib]
@@ -10,10 +10,10 @@ crate-type = ["cdylib"]
 testutils = ["soroban-sdk/testutils"]
 
 [dependencies]
-soroban-sdk = "20.0.0-rc2"
+soroban-sdk = "20.3.2"
 
 [dev_dependencies]
-soroban-sdk = { version = "20.0.0-rc2", features = ["testutils"] }
+soroban-sdk = { version = "20.3.2", features = ["testutils"] }
 
 [profile.release]
 opt-level = "z"
