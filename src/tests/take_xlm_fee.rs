@@ -1,39 +1,74 @@
 use soroban_sdk::{
-    symbol_short,
-    testutils::{Address as _, Events},
-    Address, IntoVal,
+    testutils::{Address as _, MockAuth},
+    Address, IntoVal, Val, Vec,
 };
 
-use crate::{base::errors, tests::setup::SetupStreamTest};
+use crate::tests::setup::SetupStreamTest;
 
 #[test]
 fn test_take_xlm_fee() {
     let vars = SetupStreamTest::setup(2000);
 
+    let sender = Address::generate(&vars.env);
     let receiver = Address::generate(&vars.env);
+
     let start_date = vars.env.ledger().timestamp();
     let end_date = start_date + 1000;
+
+    vars.token
+        .transfer(&vars.admin.clone(), &sender.clone(), &1000);
+
+    let mut args: Vec<Val> = Vec::new(&vars.env);
+
+    let el: u32 = 222;
+
+    args.push_back(sender.clone().into_val(&vars.env));
+    args.push_back(vars.contract.address.clone().into_val(&vars.env));
+    args.push_back(1000_i128.into_val(&vars.env));
+    args.push_back(el.into_val(&vars.env));
+
+    // from: Address, spender: Address, amount: i128, expiration_ledger: u32);
+
+    vars.token
+        .mock_auths(&[MockAuth {
+            address: &sender,
+            invoke: &soroban_sdk::testutils::MockAuthInvoke {
+                contract: &vars.token.address,
+                fn_name: "approve",
+                args,
+                sub_invokes: &[],
+            },
+        }])
+        .approve(&sender.clone(), &vars.contract.address.clone(), &1000, &el);
 
     let params = crate::base::types::LockupInput {
         receiver,
         end_date,
         start_date,
         is_vesting: false,
-        amount: vars.amount,
+        amount: vars.amount / 5,
         cliff_date: end_date,
-        sender: vars.admin.clone(),
+        sender: sender.clone(),
         cancellable_date: start_date,
         token: vars.token.address.clone(),
         rate: crate::base::types::Rate::Monthly,
     };
 
-    let id = vars.contract.create_lockup(&params);
+    let id = vars
+        .contract
+        .mock_auths(&[MockAuth {
+            address: &sender,
+            invoke: &soroban_sdk::testutils::MockAuthInvoke {
+                contract: &vars.contract.address,
+                fn_name: "create_lockup",
+                args: params.to_vec_val(&vars.env),
+                sub_invokes: &[],
+            },
+        }])
+        .create_lockup(&params);
+
+    // test XLM?
 
     assert_eq!(id, 0);
-    assert_eq!(vars.token.decimals(), 7);
-    assert_eq!(vars.token.balance(&vars.admin), 0);
-    assert_eq!(vars.token.balance(&vars.contract.address), vars.amount);
+    assert_eq!(vars.token.balance(&sender), 1000 - vars.amount / 5);
 }
-
-Hey guys. I want to write a test for my application and want to call a contract function by
-2 different users. How can I do that in Soroban tests?
