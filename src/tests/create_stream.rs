@@ -23,9 +23,10 @@ fn test_stream_should_be_created() {
         start_date: now,
         end_date: now + 1000,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
-    let id = vars.contract.create_stream(&params);
+    let id = vars.contract.create_lockup(&params);
 
     assert_eq!(id, 0);
     assert_eq!(vars.token.decimals(), 7);
@@ -50,10 +51,11 @@ fn test_stream_should_be_created_and_id_should_increment() {
         start_date: now,
         end_date: now + 1000,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
     assert_eq!(vars.contract.get_latest_lockup_id(), 0);
-    let id = vars.contract.create_stream(&params);
+    let id = vars.contract.create_lockup(&params);
     assert_eq!(vars.contract.get_latest_lockup_id(), 1);
 
     assert_eq!(id, 0);
@@ -79,11 +81,12 @@ fn test_stream_should_be_created_and_id_should_increment_by_200() {
         start_date: now,
         end_date: now + 1000,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
     for i in 0..100 {
         assert_eq!(vars.contract.get_latest_lockup_id(), i);
-        vars.contract.create_stream(&params);
+        vars.contract.create_lockup(&params);
         assert_eq!(vars.contract.get_latest_lockup_id(), i + 1);
     }
 }
@@ -105,9 +108,10 @@ fn test_create_stream_should_emit_events() {
         start_date: now,
         end_date: now + 1000,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
-    vars.contract.create_stream(&params);
+    vars.contract.create_lockup(&params);
 
     let events = vars.env.events().all();
     assert!(events.contains((
@@ -134,10 +138,11 @@ fn test_second_stream_should_have_incremented_id() {
         start_date: now,
         end_date: now + 1000,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
-    let id0 = vars.contract.create_stream(&params);
-    let id1 = vars.contract.create_stream(&params);
+    let id0 = vars.contract.create_lockup(&params);
+    let id1 = vars.contract.create_lockup(&params);
 
     assert_eq!(vars.token.balance(&vars.admin), 0);
     assert_eq!(id0, 0);
@@ -161,10 +166,11 @@ fn test_stream_should_revert_when_start_date_is_equal_to_end_date() {
         start_date: now,
         end_date: now,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
     assert_eq!(
-        vars.contract.try_create_stream(&params),
+        vars.contract.try_create_lockup(&params),
         Err(Ok(errors::CustomErrors::InvalidStartDate))
     );
 }
@@ -186,10 +192,11 @@ fn test_stream_should_revert_when_start_date_is_greater_than_end_date() {
         start_date: now + 2,
         end_date: now,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
     assert_eq!(
-        vars.contract.try_create_stream(&params),
+        vars.contract.try_create_lockup(&params),
         Err(Ok(errors::CustomErrors::InvalidStartDate))
     );
 }
@@ -211,10 +218,11 @@ fn test_stream_should_revert_when_cliff_date_is_less_than_start_date() {
         start_date: now + 100,
         end_date: now + 200,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
     assert_eq!(
-        vars.contract.try_create_stream(&params),
+        vars.contract.try_create_lockup(&params),
         Err(Ok(errors::CustomErrors::InvalidCliffDate))
     );
 }
@@ -236,10 +244,11 @@ fn test_stream_should_revert_when_amount_is_zero() {
         start_date: now,
         end_date: now,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
     assert_eq!(
-        vars.contract.try_create_stream(&params),
+        vars.contract.try_create_lockup(&params),
         Err(Ok(errors::CustomErrors::InvalidAmount))
     );
 }
@@ -261,10 +270,11 @@ fn test_stream_should_revert_when_amount_is_negative() {
         start_date: now,
         end_date: now,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
     assert_eq!(
-        vars.contract.try_create_stream(&params),
+        vars.contract.try_create_lockup(&params),
         Err(Ok(errors::CustomErrors::InvalidAmount))
     );
 }
@@ -285,10 +295,11 @@ fn test_stream_should_revert_when_sender_and_receiver_are_the_same_address() {
         start_date: now,
         end_date: now,
         rate: crate::base::types::Rate::Monthly,
+        is_vesting: false,
     };
 
     assert_eq!(
-        vars.contract.try_create_stream(&params),
+        vars.contract.try_create_lockup(&params),
         Err(Ok(errors::CustomErrors::InvalidReceiver))
     );
 }

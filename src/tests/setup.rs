@@ -53,9 +53,10 @@ impl Default for StreamFields {
 
 pub struct SetupStreamTest<'a> {
     pub env: Env,
-    pub admin: Address,
-    pub token: Client<'a>,
     pub amount: i128,
+    pub admin: Address,
+    pub xlm: Client<'a>,
+    pub token: Client<'a>,
     pub contract: FluxityClient<'a>,
 }
 
@@ -67,6 +68,10 @@ impl<'a> SetupStreamTest<'a> {
 
         let admin = Address::generate(&env);
 
+        let xlm_id = env.register_stellar_asset_contract(admin.clone());
+        let xlm_client = soroban_sdk::token::Client::new(&env, &xlm_id);
+        let xlm_admin_client = soroban_sdk::token::StellarAssetClient::new(&env, &xlm_id);
+
         let token_id = env.register_stellar_asset_contract(admin.clone());
         let token_client = soroban_sdk::token::Client::new(&env, &token_id);
         let token_admin_client = soroban_sdk::token::StellarAssetClient::new(&env, &token_id);
@@ -74,6 +79,10 @@ impl<'a> SetupStreamTest<'a> {
         let contract_id = env.register_contract(None, Fluxity);
         let client = FluxityClient::new(&env, &contract_id);
 
+        client.initialize(&admin, &xlm_client.address);
+        client.set_monthly_fee(&0);
+
+        xlm_admin_client.mint(&admin, &amount);
         token_admin_client.mint(&admin, &amount);
 
         token_client.approve(&admin, &client.address, &amount, &6311000);
@@ -82,6 +91,7 @@ impl<'a> SetupStreamTest<'a> {
             env,
             admin,
             amount,
+            xlm: xlm_client,
             contract: client,
             token: token_client,
         }
@@ -103,9 +113,10 @@ impl<'a> SetupStreamTest<'a> {
             end_date: now + fields.end_date,
             cancellable_date: now + fields.cancellable_date,
             rate: crate::base::types::Rate::Monthly,
+            is_vesting: false,
         };
 
-        let id = vars.contract.create_stream(&params);
+        let id = vars.contract.create_lockup(&params);
 
         assert_eq!(vars.contract.get_lockup(&0).sender, vars.admin.clone());
         assert_eq!(vars.token.decimals(), 7);
@@ -131,9 +142,10 @@ impl<'a> SetupStreamTest<'a> {
             cancellable_date: now + fields.cancellable_date,
             start_date: now + fields.start_date,
             token: vars.token.address.clone(),
+            is_vesting: true,
         };
 
-        let id = vars.contract.create_vesting(&params);
+        let id = vars.contract.create_lockup(&params);
 
         (vars, id)
     }

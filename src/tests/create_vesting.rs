@@ -24,9 +24,10 @@ fn test_create_vesting_should_work() {
         cancellable_date: now,
         token: vars.token.address,
         rate: crate::base::types::Rate::Daily,
+        is_vesting: true,
     };
 
-    vars.contract.create_vesting(&params);
+    vars.contract.create_lockup(&params);
 }
 
 #[test]
@@ -47,9 +48,10 @@ fn test_create_vesting_should_store_is_vesting_to_true() {
         cancellable_date: now,
         token: vars.token.address,
         rate: crate::base::types::Rate::Daily,
+        is_vesting: true,
     };
 
-    let id = vars.contract.create_vesting(&params);
+    let id = vars.contract.create_lockup(&params);
 
     let stream = vars.contract.get_lockup(&id);
 
@@ -74,9 +76,10 @@ fn test_create_vesting_should_revert_when_amount_is_negative() {
         cancellable_date: now,
         token: vars.token.address,
         rate: crate::base::types::Rate::Daily,
+        is_vesting: true,
     };
 
-    let result = vars.contract.try_create_vesting(&params);
+    let result = vars.contract.try_create_lockup(&params);
 
     assert_eq!(result, Err(Ok(errors::CustomErrors::InvalidAmount)));
 }
@@ -99,9 +102,10 @@ fn test_create_vesting_should_revert_when_amount_is_zero() {
         cancellable_date: now,
         token: vars.token.address,
         rate: crate::base::types::Rate::Daily,
+        is_vesting: true,
     };
 
-    let result = vars.contract.try_create_vesting(&params);
+    let result = vars.contract.try_create_lockup(&params);
 
     assert_eq!(result, Err(Ok(errors::CustomErrors::InvalidAmount)));
 }
@@ -123,9 +127,10 @@ fn test_create_vesting_should_revert_when_sender_and_receiver_are_the_same() {
         cancellable_date: now,
         token: vars.token.address,
         rate: crate::base::types::Rate::Daily,
+        is_vesting: true,
     };
 
-    let result = vars.contract.try_create_vesting(&params);
+    let result = vars.contract.try_create_lockup(&params);
 
     assert_eq!(result, Err(Ok(errors::CustomErrors::InvalidReceiver)));
 }
@@ -148,9 +153,10 @@ fn test_create_vesting_should_revert_when_start_date_is_equal_to_end_date() {
         cancellable_date: now,
         token: vars.token.address,
         rate: crate::base::types::Rate::Daily,
+        is_vesting: true,
     };
 
-    let result = vars.contract.try_create_vesting(&params);
+    let result = vars.contract.try_create_lockup(&params);
 
     assert_eq!(result, Err(Ok(errors::CustomErrors::InvalidStartDate)));
 }
@@ -173,9 +179,10 @@ fn test_create_vesting_should_revert_when_cancellable_date_is_greater_than_end_d
         cancellable_date: end_date + 1,
         token: vars.token.address,
         rate: crate::base::types::Rate::Daily,
+        is_vesting: true,
     };
 
-    let result = vars.contract.try_create_vesting(&params);
+    let result = vars.contract.try_create_lockup(&params);
 
     assert_eq!(
         result,

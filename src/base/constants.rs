@@ -1,0 +1,6 @@
+pub const DAY_IN_LEDGERS: u32 = 17280;
+pub const BUMP_AMOUNT: u32 = 60 * DAY_IN_LEDGERS;
+pub const LIFETIME_THRESHOLD: u32 = 30 * DAY_IN_LEDGERS;
+
+pub const DAY_IN_SECONDS: u64 = 86400;
+pub const MONTH_IN_SECONDS: u64 = 30 * DAY_IN_SECONDS;

@@ -1,4 +1,6 @@
-use soroban_sdk::{contract, contractimpl, Env};
+use soroban_sdk::{contract, contractimpl, Address, Env};
+use token::take_xlm_fee;
+use utils::calculate_lockup_fee;
 
 use self::{storage::get_lockup_by_id, utils::calculate_additional_time};
 
@@ -11,7 +13,63 @@ pub struct Fluxity;
 
 #[contractimpl]
 impl IFluxity for Fluxity {
-    /// Returns the latest stream id
+    /// Initializes the contract and sets admin for it
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let id = fluxity_client::initialize();
+    /// ```
+    fn initialize(e: Env, admin: Address, xlm: Address) {
+        storage::set_admin(&e, admin);
+        storage::set_xlm(&e, xlm);
+    }
+
+    /// Returns the admin of the Fluxity contract
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let admin = fluxity_client::get_admin();
+    /// ```
+    fn get_admin(e: Env) -> Address {
+        storage::get_admin(&e)
+    }
+
+    /// Returns the address of the XLM token
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let xlm_address = fluxity_client::get_xlm();
+    /// ```
+    fn get_xlm(e: Env) -> Address {
+        storage::get_xlm(&e)
+    }
+
+    /// Sets the monthly fee for lockups. Only the admin can call this
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let id = fluxity_client::set_monthly_fee(200);
+    /// ```
+    fn set_monthly_fee(e: Env, fee: i128) {
+        storage::set_monthly_fee(&e, fee);
+    }
+
+    /// Returns the monthly fee for lockups
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let fee = fluxity_client::get_monthly_fee();
+    /// ```
+    fn get_monthly_fee(e: Env) -> i128 {
+        storage::get_monthly_fee(&e)
+    }
+
+    /// Returns the latest lockup id
     ///
     /// # Examples
     ///
@@ -20,6 +78,19 @@ impl IFluxity for Fluxity {
     /// ```
     fn get_latest_lockup_id(e: Env) -> u64 {
         storage::get_latest_lockup_id(&e)
+    }
+
+    /// Returns the fee calculated based on the start and end time of a lockup
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let fee = fluxity_client::calculate_fee();
+    /// ```
+    fn calculate_fee(e: Env, start_date: u64, end_date: u64) -> i128 {
+        let monthly_fee = storage::get_monthly_fee(&e);
+
+        calculate_lockup_fee(start_date, end_date, monthly_fee)
     }
 
     /// Returns a lockup by id
@@ -220,6 +291,13 @@ impl IFluxity for Fluxity {
         if &params.cliff_date < &params.start_date || &params.cliff_date > &params.end_date {
             return Err(errors::CustomErrors::InvalidCliffDate);
         }
+
+        take_xlm_fee(
+            &e,
+            params.start_date,
+            params.end_date,
+            params.sender.clone(),
+        );
 
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
