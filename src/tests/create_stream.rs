@@ -30,7 +30,7 @@ fn test_stream_should_be_created() {
 
     assert_eq!(id, 0);
     assert_eq!(vars.token.decimals(), 7);
-    assert_eq!(vars.token.balance(&vars.admin), 0);
+    assert_eq!(vars.token.balance(&vars.admin), i128::MAX - 2000);
     assert_eq!(vars.token.balance(&vars.contract.address), vars.amount);
 }
 
@@ -60,7 +60,7 @@ fn test_stream_should_be_created_and_id_should_increment() {
 
     assert_eq!(id, 0);
     assert_eq!(vars.token.decimals(), 7);
-    assert_eq!(vars.token.balance(&vars.admin), 0);
+    assert_eq!(vars.token.balance(&vars.admin), i128::MAX - 2000);
     assert_eq!(vars.token.balance(&vars.contract.address), vars.amount);
 }
 
@@ -144,7 +144,7 @@ fn test_second_stream_should_have_incremented_id() {
     let id0 = vars.contract.create_lockup(&params);
     let id1 = vars.contract.create_lockup(&params);
 
-    assert_eq!(vars.token.balance(&vars.admin), 0);
+    assert_eq!(vars.token.balance(&vars.admin), i128::MAX - 2000);
     assert_eq!(id0, 0);
     assert_eq!(id1, 1);
 }

@@ -17,7 +17,7 @@ fn test_cancel_stream_should_transfer_when_withdrawn_is_not_zero() {
     assert_eq!(amounts.1, 300);
 
     assert_eq!(vars.token.balance(&vars.contract.address.clone()), 0);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), 500);
+    assert_eq!(vars.token.balance(&vars.admin.clone()), i128::MAX - 500);
     assert_eq!(vars.token.balance(&stream.receiver.clone()), 500);
 }
 
@@ -31,7 +31,7 @@ fn test_cancel_stream_should_not_transfer_when_stream_is_fully_withdrawn() {
     let stream = vars.contract.get_lockup(&id);
 
     assert_eq!(vars.token.balance(&vars.contract.address.clone()), 0);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), 0);
+    assert_eq!(vars.token.balance(&vars.admin.clone()), i128::MAX - 1000);
     assert_eq!(vars.token.balance(&stream.receiver.clone()), 1000);
 
     let result = vars.contract.try_cancel_lockup(&id);

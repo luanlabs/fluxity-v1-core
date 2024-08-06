@@ -17,8 +17,7 @@ fn test_stream_should_be_cancelled_after_creation() {
     let stream = vars.contract.get_lockup(&id);
 
     assert_eq!(vars.token.balance(&vars.contract.address), 0);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), vars.amount);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), amounts.0);
+    assert_eq!(vars.token.balance(&vars.admin.clone()), i128::MAX);
     assert_eq!(vars.token.balance(&stream.receiver.clone()), 0);
     assert_eq!(vars.token.balance(&stream.receiver.clone()), amounts.1);
     assert!(stream.is_cancelled);
@@ -50,8 +49,10 @@ fn test_cancel_stream_should_transfer_tokens_to_both_sides() {
     let stream = vars.contract.get_lockup(&id);
 
     assert_eq!(vars.token.balance(&vars.contract.address), 0);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), vars.amount / 2);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), amounts.0);
+    assert_eq!(
+        vars.token.balance(&vars.admin.clone()),
+        i128::MAX - vars.amount / 2
+    );
     assert_eq!(
         vars.token.balance(&stream.receiver.clone()),
         vars.amount / 2

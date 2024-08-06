@@ -7,7 +7,8 @@ use crate::tests::setup::SetupStreamTest;
 
 #[test]
 fn test_take_xlm_fee() {
-    let vars = SetupStreamTest::setup(2000);
+    let amount: i128 = 2000;
+    let vars = SetupStreamTest::setup(amount);
 
     let sender = Address::generate(&vars.env);
     let receiver = Address::generate(&vars.env);
@@ -16,7 +17,7 @@ fn test_take_xlm_fee() {
     let end_date = start_date + 1000;
 
     vars.token
-        .transfer(&vars.admin.clone(), &sender.clone(), &1000);
+        .transfer(&vars.admin.clone(), &sender.clone(), &amount);
 
     let mut args: Vec<Val> = Vec::new(&vars.env);
 
@@ -24,7 +25,7 @@ fn test_take_xlm_fee() {
 
     args.push_back(sender.clone().into_val(&vars.env));
     args.push_back(vars.contract.address.clone().into_val(&vars.env));
-    args.push_back(1000_i128.into_val(&vars.env));
+    args.push_back(amount.into_val(&vars.env));
     args.push_back(el.into_val(&vars.env));
 
     // from: Address, spender: Address, amount: i128, expiration_ledger: u32);
@@ -39,14 +40,19 @@ fn test_take_xlm_fee() {
                 sub_invokes: &[],
             },
         }])
-        .approve(&sender.clone(), &vars.contract.address.clone(), &1000, &el);
+        .approve(
+            &sender.clone(),
+            &vars.contract.address.clone(),
+            &amount,
+            &el,
+        );
 
     let params = crate::base::types::LockupInput {
         receiver,
         end_date,
         start_date,
         is_vesting: false,
-        amount: vars.amount / 5,
+        amount: vars.amount,
         cliff_date: end_date,
         sender: sender.clone(),
         cancellable_date: start_date,
@@ -70,5 +76,5 @@ fn test_take_xlm_fee() {
     // test XLM?
 
     assert_eq!(id, 0);
-    assert_eq!(vars.token.balance(&sender), 1000 - vars.amount / 5);
+    assert_eq!(vars.token.balance(&sender), 0);
 }

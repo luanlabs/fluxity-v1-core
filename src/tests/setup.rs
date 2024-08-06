@@ -82,10 +82,10 @@ impl<'a> SetupStreamTest<'a> {
         client.initialize(&admin, &xlm_client.address);
         client.set_monthly_fee(&0);
 
-        xlm_admin_client.mint(&admin, &amount);
-        token_admin_client.mint(&admin, &amount);
+        xlm_admin_client.mint(&admin, &i128::MAX);
+        token_admin_client.mint(&admin, &i128::MAX);
 
-        token_client.approve(&admin, &client.address, &amount, &6311000);
+        token_client.approve(&admin, &client.address, &i128::MAX, &6311000);
 
         Self {
             env,
@@ -120,7 +120,7 @@ impl<'a> SetupStreamTest<'a> {
 
         assert_eq!(vars.contract.get_lockup(&0).sender, vars.admin.clone());
         assert_eq!(vars.token.decimals(), 7);
-        assert_eq!(vars.token.balance(&vars.admin), 0);
+        assert_eq!(vars.token.balance(&vars.admin), i128::MAX - vars.amount);
         assert_eq!(vars.token.balance(&vars.contract.address), vars.amount);
 
         (vars, id)
