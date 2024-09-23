@@ -241,7 +241,7 @@ impl IFluxity for Fluxity {
             amount_to_transfer = withdrawable;
         }
 
-        lockup.withdrawn = lockup.withdrawn + amount_to_transfer;
+        lockup.withdrawn += amount_to_transfer;
 
         storage::set_lockup(&e, id, &lockup);
 
@@ -277,19 +277,19 @@ impl IFluxity for Fluxity {
             return Err(errors::CustomErrors::InvalidAmount);
         }
 
-        if &params.sender == &params.receiver {
+        if params.sender == params.receiver {
             return Err(errors::CustomErrors::InvalidReceiver);
         }
 
-        if &params.start_date >= &params.end_date {
+        if params.start_date >= params.end_date {
             return Err(errors::CustomErrors::InvalidStartDate);
         }
 
-        if &params.cancellable_date > &params.end_date {
+        if params.cancellable_date > params.end_date {
             return Err(errors::CustomErrors::InvalidCancellableDate);
         }
 
-        if &params.cliff_date < &params.start_date || &params.cliff_date > &params.end_date {
+        if params.cliff_date < params.start_date || params.cliff_date > params.end_date {
             return Err(errors::CustomErrors::InvalidCliffDate);
         }
 
@@ -342,15 +342,15 @@ impl IFluxity for Fluxity {
         let additional_duration = calculate_additional_time(&lockup, adding_amount);
 
         if lockup.cancelled_date == lockup.end_date {
-            lockup.cancellable_date = lockup.cancellable_date + additional_duration;
+            lockup.cancellable_date += additional_duration;
         }
 
         if lockup.cliff_date == lockup.end_date {
-            lockup.cliff_date = lockup.cliff_date + additional_duration;
+            lockup.cliff_date += additional_duration;
         }
 
-        lockup.amount = lockup.amount + adding_amount;
-        lockup.end_date = lockup.end_date + additional_duration;
+        lockup.amount += adding_amount;
+        lockup.end_date += additional_duration;
 
         storage::set_lockup(&e, id, &lockup);
 

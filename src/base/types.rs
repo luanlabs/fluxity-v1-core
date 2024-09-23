@@ -1,6 +1,4 @@
-use core::fmt::write;
-
-use soroban_sdk::{contracttype, vec, Address, Env, IntoVal, Val, Vec};
+use soroban_sdk::{contracttype, Address, Env, IntoVal, Val, Vec};
 
 #[contracttype]
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -67,7 +65,7 @@ impl Into<Lockup> for LockupInput {
             start_date: self.start_date,
             end_date: self.end_date,
             // rate: Rate::Daily,
-            rate: self.rate.clone(),
+            rate: self.rate,
             is_vesting: self.is_vesting,
         }
     }
