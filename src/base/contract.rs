@@ -273,6 +273,8 @@ impl IFluxity for Fluxity {
     /// fluxity_client::create_lockup(&params);
     /// ```
     fn create_lockup(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
+        params.spender.require_auth();
+
         if params.amount <= 0 {
             return Err(errors::CustomErrors::InvalidAmount);
         }
@@ -298,11 +300,11 @@ impl IFluxity for Fluxity {
             &e,
             params.start_date,
             params.end_date,
-            params.sender.clone(),
+            params.spender.clone(),
             admin,
         );
 
-        token::transfer_from(&e, &params.token, &params.sender, &params.amount);
+        token::transfer_from(&e, &params.token, &params.spender, &params.amount);
 
         let id = storage::get_latest_lockup_id(&e);
         let lockup: types::Lockup = params.into();

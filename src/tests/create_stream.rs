@@ -17,6 +17,7 @@ fn test_stream_should_be_created() {
     let admin_balance = vars.token.balance(&vars.admin);
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -48,6 +49,7 @@ fn test_stream_should_be_created_and_id_should_increment() {
     let admin_balance = vars.token.balance(&vars.admin);
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -78,6 +80,7 @@ fn test_stream_should_be_created_and_id_should_increment_by_200() {
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -105,6 +108,7 @@ fn test_create_stream_should_emit_events() {
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -138,6 +142,7 @@ fn test_second_stream_should_have_incremented_id() {
     let admin_balance = vars.token.balance(&vars.admin);
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -166,6 +171,7 @@ fn test_stream_should_revert_when_start_date_is_equal_to_end_date() {
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -192,6 +198,7 @@ fn test_stream_should_revert_when_start_date_is_greater_than_end_date() {
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -218,6 +225,7 @@ fn test_stream_should_revert_when_cliff_date_is_less_than_start_date() {
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -244,6 +252,7 @@ fn test_stream_should_revert_when_amount_is_zero() {
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -270,6 +279,7 @@ fn test_stream_should_revert_when_amount_is_negative() {
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         token: vars.token.address.clone(),
@@ -295,6 +305,7 @@ fn test_stream_should_revert_when_sender_and_receiver_are_the_same_address() {
     let now = vars.env.ledger().timestamp();
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver: vars.admin.clone(),
         token: vars.token.address.clone(),

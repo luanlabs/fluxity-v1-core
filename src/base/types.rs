@@ -20,6 +20,7 @@ pub struct Amounts {
 #[contracttype]
 #[derive(Debug, Clone)]
 pub struct LockupInput {
+    pub spender: Address,
     pub sender: Address,
     pub receiver: Address,
     pub token: Address,
@@ -37,6 +38,7 @@ pub struct LockupInput {
 pub struct Lockup {
     pub withdrawn: i128,
     pub is_cancelled: bool,
+    pub spender: Address,
     pub sender: Address,
     pub receiver: Address,
     pub token: Address,
@@ -55,6 +57,7 @@ impl Into<Lockup> for LockupInput {
         Lockup {
             withdrawn: 0,
             is_cancelled: false,
+            spender: self.spender.clone(),
             sender: self.sender.clone(),
             receiver: self.receiver.clone(),
             token: self.token.clone(),

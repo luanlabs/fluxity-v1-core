@@ -55,24 +55,27 @@ fn test_no_xlm_fee_should_be_taken() {
         amount: vars.amount,
         cliff_date: end_date,
         sender: sender.clone(),
+        spender: sender.clone(),
         cancellable_date: start_date,
         token: vars.token.address.clone(),
         rate: crate::base::types::Rate::Monthly,
     };
 
-    let id = vars
-        .contract
-        .mock_auths(&[MockAuth {
-            address: &sender,
-            invoke: &soroban_sdk::testutils::MockAuthInvoke {
-                contract: &vars.contract.address,
-                fn_name: "create_lockup",
-                args: params.to_vec_val(&vars.env),
-                sub_invokes: &[],
-            },
-        }])
-        .create_lockup(&params);
+    let id = vars.contract.create_lockup(&params);
 
+    // let id = vars
+    //     .contract
+    //     .mock_auths(&[MockAuth {
+    //         address: &sender,
+    //         invoke: &soroban_sdk::testutils::MockAuthInvoke {
+    //             contract: &vars.contract.address,
+    //             fn_name: "create_lockup",
+    //             args: params.to_vec_val(&vars.env),
+    //             sub_invokes: &[],
+    //         },
+    //     }])
+    //     .create_lockup(&params);
+    //
     let admin_xlm_balance_after = vars.xlm.balance(&vars.admin);
 
     assert_eq!(id, 0);
@@ -117,6 +120,7 @@ fn test_xlm_fee_should_be_taken() {
         amount: vars.amount,
         cliff_date: end_date,
         sender: sender.clone(),
+        spender: sender.clone(),
         cancellable_date: start_date,
         token: vars.token.address.clone(),
         rate: crate::base::types::Rate::Monthly,
@@ -188,6 +192,7 @@ fn test_xlm_fee_should_be_taken_multiple_times_for_nth_month() {
         amount: vars.amount,
         cliff_date: end_date,
         sender: sender.clone(),
+        spender: sender.clone(),
         cancellable_date: start_date,
         token: vars.token.address.clone(),
         rate: crate::base::types::Rate::Monthly,

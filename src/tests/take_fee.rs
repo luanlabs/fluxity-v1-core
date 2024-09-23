@@ -15,6 +15,7 @@ fn test_take_zero_fee() {
     let receiver = Address::random(&vars.env);
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         end_date,
@@ -64,6 +65,7 @@ fn test_take_fee_if_stream_is_more_than_one_month() {
     let balance_before = vars.xlm.balance(&vars.contract.get_admin());
 
     let params = crate::base::types::LockupInput {
+        spender: vars.admin.clone(),
         sender: user.clone(),
         receiver,
         end_date,
