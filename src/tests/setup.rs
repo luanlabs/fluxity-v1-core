@@ -82,7 +82,7 @@ impl<'a> SetupStreamTest<'a> {
         client.initialize(&admin, &xlm_client.address);
         client.set_monthly_fee(&0);
 
-        xlm_admin_client.mint(&admin, &amount);
+        xlm_admin_client.mint(&admin, &(10e18 as i128));
         token_admin_client.mint(&admin, &amount);
 
         token_client.approve(&admin, &client.address, &amount, &6311000);
