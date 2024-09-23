@@ -13,14 +13,15 @@ use crate::{
 fn test_stream_should_be_cancelled_after_creation() {
     let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
+    let admin_balance = vars.token.balance(&vars.admin);
+
     let amounts = vars.contract.cancel_lockup(&id);
     let stream = vars.contract.get_lockup(&id);
 
     assert_eq!(vars.token.balance(&vars.contract.address), 0);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), vars.amount);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), amounts.0);
-    assert_eq!(vars.token.balance(&stream.receiver.clone()), 0);
-    assert_eq!(vars.token.balance(&stream.receiver.clone()), amounts.1);
+    assert_eq!(vars.token.balance(&vars.admin), admin_balance + 1000);
+    assert_eq!(vars.token.balance(&stream.receiver), 0);
+    assert_eq!(vars.token.balance(&stream.receiver), amounts.1);
     assert!(stream.is_cancelled);
 }
 
@@ -42,6 +43,8 @@ fn test_cancel_stream_should_emit_event() {
 fn test_cancel_stream_should_transfer_tokens_to_both_sides() {
     let (vars, id) = SetupStreamTest::setup_with_stream_created(StreamFields::default());
 
+    let admin_balance = vars.token.balance(&vars.admin);
+
     let new_timestamp = 50;
     vars.move_ledger_timestamp_to(new_timestamp);
     assert_eq!(vars.env.ledger().get().timestamp, new_timestamp);
@@ -50,8 +53,10 @@ fn test_cancel_stream_should_transfer_tokens_to_both_sides() {
     let stream = vars.contract.get_lockup(&id);
 
     assert_eq!(vars.token.balance(&vars.contract.address), 0);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), vars.amount / 2);
-    assert_eq!(vars.token.balance(&vars.admin.clone()), amounts.0);
+    assert_eq!(
+        vars.token.balance(&vars.admin.clone()),
+        admin_balance + vars.amount / 2
+    );
     assert_eq!(
         vars.token.balance(&stream.receiver.clone()),
         vars.amount / 2

@@ -1,4 +1,5 @@
 use soroban_sdk::{contract, contractimpl, Address, Env};
+use storage::get_admin;
 use token::take_xlm_fee;
 use utils::calculate_lockup_fee;
 
@@ -107,67 +108,6 @@ impl IFluxity for Fluxity {
             None => Err(errors::CustomErrors::LockupNotFound),
             Some(lockup) => Ok(lockup),
         }
-    }
-
-    /// Creates an stream
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let params = StreamInput {
-    ///     sender: Address::random(&env),
-    ///     receiver: Address::random(&env),
-    ///     token: Address::random(&env),
-    ///     amount: 20000000,
-    ///     start_date: now,
-    ///     cancellable_date: now,
-    ///     cliff_date: now + 100,
-    ///     end_date: now + 1000,
-    ///     rate: Rate::Daily
-    /// };
-    ///
-    /// fluxity_client::create_stream(&params);
-    /// ```
-    fn create_stream(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
-        if params.amount <= 0 {
-            return Err(errors::CustomErrors::InvalidAmount);
-        }
-
-        if &params.sender == &params.receiver {
-            return Err(errors::CustomErrors::InvalidReceiver);
-        }
-
-        if &params.start_date >= &params.end_date {
-            return Err(errors::CustomErrors::InvalidStartDate);
-        }
-
-        if &params.cancellable_date > &params.end_date {
-            return Err(errors::CustomErrors::InvalidCancellableDate);
-        }
-
-        if &params.cliff_date < &params.start_date || &params.cliff_date > &params.end_date {
-            return Err(errors::CustomErrors::InvalidCliffDate);
-        }
-
-        take_xlm_fee(
-            &e,
-            params.start_date,
-            params.end_date,
-            params.sender.clone(),
-        );
-
-        token::transfer_from(&e, &params.token, &params.sender, &params.amount);
-
-        let id = storage::get_latest_lockup_id(&e);
-        let mut lockup: types::Lockup = params.into();
-
-        lockup.is_vesting = false;
-
-        storage::set_lockup(&e, id, &lockup);
-        storage::increment_latest_lockup_id(&e, &id);
-        events::publish_lockup_created_event(&e, id);
-
-        Ok(id)
     }
 
     /// Cancels a lockup
@@ -312,12 +252,12 @@ impl IFluxity for Fluxity {
         Ok(amount_to_transfer)
     }
 
-    /// Creates a vesting stream
+    /// Creates a lockup (stream/vesting)
     ///
     /// # Examples
     ///
     /// ```
-    /// let params = VestingInput {
+    /// let params = LockupInput {
     ///     sender: Address::random(&env),
     ///     receiver: Address::random(&env),
     ///     token: Address::random(&env),
@@ -326,12 +266,13 @@ impl IFluxity for Fluxity {
     ///     cancellable_date: now,
     ///     cliff_date: now + 100,
     ///     end_date: now + 1000,
-    ///     rate: Rate::Daily
+    ///     rate: Rate::Daily,
+    ///     is_vesting: true
     /// };
     ///
-    /// fluxity_client::create_vesting(&params);
+    /// fluxity_client::create_lockup(&params);
     /// ```
-    fn create_vesting(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
+    fn create_lockup(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
         if params.amount <= 0 {
             return Err(errors::CustomErrors::InvalidAmount);
         }
@@ -352,19 +293,19 @@ impl IFluxity for Fluxity {
             return Err(errors::CustomErrors::InvalidCliffDate);
         }
 
+        let admin = get_admin(&e);
         take_xlm_fee(
             &e,
             params.start_date,
             params.end_date,
             params.sender.clone(),
+            admin,
         );
 
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
         let id = storage::get_latest_lockup_id(&e);
-        let mut lockup: types::Lockup = params.into();
-
-        lockup.is_vesting = true;
+        let lockup: types::Lockup = params.into();
 
         storage::set_lockup(&e, id, &lockup);
         storage::increment_latest_lockup_id(&e, &id);

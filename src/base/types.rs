@@ -1,4 +1,6 @@
-use soroban_sdk::{contracttype, Address};
+use core::fmt::write;
+
+use soroban_sdk::{contracttype, vec, Address, Env, IntoVal, Val, Vec};
 
 #[contracttype]
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -18,7 +20,7 @@ pub struct Amounts {
 }
 
 #[contracttype]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LockupInput {
     pub sender: Address,
     pub receiver: Address,
@@ -29,6 +31,7 @@ pub struct LockupInput {
     pub start_date: u64,
     pub end_date: u64,
     pub rate: Rate,
+    pub is_vesting: bool,
 }
 
 #[contracttype]
@@ -65,7 +68,26 @@ impl Into<Lockup> for LockupInput {
             end_date: self.end_date,
             // rate: Rate::Daily,
             rate: self.rate.clone(),
-            is_vesting: false,
+            is_vesting: self.is_vesting,
         }
+    }
+}
+
+impl LockupInput {
+    pub fn to_vec_val(&self, env: &Env) -> Vec<Val> {
+        let mut v = Vec::new(env);
+
+        v.push_back(self.sender.clone().into_val(env));
+        v.push_back(self.receiver.clone().into_val(env));
+        v.push_back(self.token.clone().into_val(env));
+        v.push_back(self.amount.clone().into_val(env));
+        v.push_back(self.cancellable_date.clone().into_val(env));
+        v.push_back(self.cliff_date.clone().into_val(env));
+        v.push_back(self.start_date.clone().into_val(env));
+        v.push_back(self.end_date.clone().into_val(env));
+        v.push_back(self.rate.clone().into_val(env));
+        v.push_back(self.is_vesting.clone().into_val(env));
+
+        v
     }
 }

@@ -66,7 +66,7 @@ impl<'a> SetupStreamTest<'a> {
 
         env.mock_all_auths();
 
-        let admin = Address::random(&env);
+        let admin = Address::generate(&env);
 
         let xlm_id = env.register_stellar_asset_contract(admin.clone());
         let xlm_client = soroban_sdk::token::Client::new(&env, &xlm_id);
@@ -82,10 +82,10 @@ impl<'a> SetupStreamTest<'a> {
         client.initialize(&admin, &xlm_client.address);
         client.set_monthly_fee(&0);
 
-        xlm_admin_client.mint(&admin, &(10e18 as i128));
-        token_admin_client.mint(&admin, &amount);
+        xlm_admin_client.mint(&admin, &(i128::MAX / 2));
+        token_admin_client.mint(&admin, &(i128::MAX / 2));
 
-        token_client.approve(&admin, &client.address, &amount, &6311000);
+        token_client.approve(&admin, &client.address, &i128::MAX, &6311000);
 
         Self {
             env,
@@ -100,7 +100,7 @@ impl<'a> SetupStreamTest<'a> {
     pub fn setup_with_stream_created(fields: StreamFields) -> (Self, u64) {
         let vars = Self::setup(fields.amount);
 
-        let receiver = Address::random(&vars.env);
+        let receiver = Address::generate(&vars.env);
         let now = vars.env.ledger().timestamp();
 
         let params = crate::base::types::LockupInput {
@@ -113,13 +113,17 @@ impl<'a> SetupStreamTest<'a> {
             end_date: now + fields.end_date,
             cancellable_date: now + fields.cancellable_date,
             rate: crate::base::types::Rate::Monthly,
+            is_vesting: false,
         };
 
-        let id = vars.contract.create_stream(&params);
+        let id = vars.contract.create_lockup(&params);
 
         assert_eq!(vars.contract.get_lockup(&0).sender, vars.admin.clone());
         assert_eq!(vars.token.decimals(), 7);
-        assert_eq!(vars.token.balance(&vars.admin), 0);
+        assert_eq!(
+            vars.token.balance(&vars.admin),
+            (i128::MAX / 2) - vars.amount
+        );
         assert_eq!(vars.token.balance(&vars.contract.address), vars.amount);
 
         (vars, id)
@@ -128,7 +132,7 @@ impl<'a> SetupStreamTest<'a> {
     pub fn setup_with_vesting_created(fields: VestingFields) -> (Self, u64) {
         let vars = Self::setup(fields.amount);
 
-        let receiver = Address::random(&vars.env);
+        let receiver = Address::generate(&vars.env);
         let now = vars.env.ledger().timestamp();
 
         let params = LockupInput {
@@ -141,9 +145,10 @@ impl<'a> SetupStreamTest<'a> {
             cancellable_date: now + fields.cancellable_date,
             start_date: now + fields.start_date,
             token: vars.token.address.clone(),
+            is_vesting: true,
         };
 
-        let id = vars.contract.create_vesting(&params);
+        let id = vars.contract.create_lockup(&params);
 
         (vars, id)
     }
