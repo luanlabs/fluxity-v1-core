@@ -3,7 +3,7 @@ use soroban_sdk::{Address, Env};
 use super::{errors, types};
 
 pub trait IFluxity {
-    fn initialize(e: Env, admin: Address, xlm: Address);
+    fn initialize(e: Env, admin: Address, xlm: Address, monthly_fee: i128);
     fn get_admin(e: Env) -> Address;
     fn get_xlm(e: Env) -> Address;
     fn set_monthly_fee(e: Env, fee: i128);

@@ -79,7 +79,7 @@ impl<'a> SetupStreamTest<'a> {
         let contract_id = env.register_contract(None, Fluxity);
         let client = FluxityClient::new(&env, &contract_id);
 
-        client.initialize(&admin, &xlm_client.address);
+        client.initialize(&admin, &xlm_client.address, &0);
         client.set_monthly_fee(&0);
 
         xlm_admin_client.mint(&admin, &i128::MAX);

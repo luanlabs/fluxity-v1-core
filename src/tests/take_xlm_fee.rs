@@ -6,7 +6,7 @@ use soroban_sdk::{
 use crate::tests::setup::SetupStreamTest;
 
 #[test]
-fn test_take_xlm_fee() {
+fn test_take_no_xlm_fee() {
     let amount: i128 = 2000;
     let vars = SetupStreamTest::setup(amount);
 
@@ -27,8 +27,6 @@ fn test_take_xlm_fee() {
     args.push_back(vars.contract.address.clone().into_val(&vars.env));
     args.push_back(amount.into_val(&vars.env));
     args.push_back(el.into_val(&vars.env));
-
-    // from: Address, spender: Address, amount: i128, expiration_ledger: u32);
 
     vars.token
         .mock_auths(&[MockAuth {
@@ -60,6 +58,8 @@ fn test_take_xlm_fee() {
         rate: crate::base::types::Rate::Monthly,
     };
 
+    let xlm_balance_before = vars.xlm.balance(&sender.clone());
+
     let id = vars
         .contract
         .mock_auths(&[MockAuth {
@@ -73,8 +73,25 @@ fn test_take_xlm_fee() {
         }])
         .create_lockup(&params);
 
-    // test XLM?
+    let xlm_balance_after = vars.xlm.balance(&sender.clone());
 
     assert_eq!(id, 0);
     assert_eq!(vars.token.balance(&sender), 0);
+    assert_eq!(xlm_balance_before, xlm_balance_after);
+}
+
+#[test]
+fn test_take_xlm_fee_for_one_month_if_duration_is_less_than_one_month() {
+    let amount: i128 = 2000;
+    let vars = SetupStreamTest::setup(amount);
+
+    let sender = Address::generate(&vars.env);
+    let receiver = Address::generate(&vars.env);
+
+    let start_date = vars.env.ledger().timestamp();
+    let end_date = start_date + 1000;
+
+    // vars.contract.initialize(admin, xlm, 2000);
+
+    // todo
 }

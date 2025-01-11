@@ -1,6 +1,4 @@
-use core::fmt::write;
-
-use soroban_sdk::{contracttype, vec, Address, Env, IntoVal, Val, Vec};
+use soroban_sdk::{contracttype, Address, Env, IntoVal, Val, Vec};
 
 #[contracttype]
 #[derive(Debug, Copy, Clone, PartialEq)]

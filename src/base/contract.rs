@@ -2,27 +2,32 @@ use soroban_sdk::{contract, contractimpl, Address, Env};
 use token::take_xlm_fee;
 use utils::calculate_lockup_fee;
 
-use self::{storage::get_lockup_by_id, utils::calculate_additional_time};
+use self::utils::calculate_additional_time;
 
-use super::*;
-
-use interface::IFluxity;
+use super::{
+    storage::{
+        get_admin, get_latest_lockup_id, get_lockup_by_id, get_monthly_fee, get_xlm,
+        increment_latest_lockup_id, set_admin, set_lockup, set_monthly_fee, set_xlm,
+    },
+    *,
+};
 
 #[contract]
 pub struct Fluxity;
 
 #[contractimpl]
-impl IFluxity for Fluxity {
+impl Fluxity {
     /// Initializes the contract and sets admin for it
     ///
     /// # Examples
     ///
     /// ```
-    /// let id = fluxity_client::initialize();
+    // / let id = fluxity_client::initialize();
     /// ```
-    fn initialize(e: Env, admin: Address, xlm: Address) {
-        storage::set_admin(&e, admin);
-        storage::set_xlm(&e, xlm);
+    fn initialize(e: Env, admin: Address, xlm: Address, monthly_fee: i128) {
+        set_admin(&e, admin);
+        set_xlm(&e, xlm);
+        set_monthly_fee(&e, monthly_fee);
     }
 
     /// Returns the admin of the Fluxity contract
@@ -33,7 +38,7 @@ impl IFluxity for Fluxity {
     /// let admin = fluxity_client::get_admin();
     /// ```
     fn get_admin(e: Env) -> Address {
-        storage::get_admin(&e)
+        get_admin(&e)
     }
 
     /// Returns the address of the XLM token
@@ -44,7 +49,7 @@ impl IFluxity for Fluxity {
     /// let xlm_address = fluxity_client::get_xlm();
     /// ```
     fn get_xlm(e: Env) -> Address {
-        storage::get_xlm(&e)
+        get_xlm(&e)
     }
 
     /// Sets the monthly fee for lockups. Only the admin can call this
@@ -55,7 +60,7 @@ impl IFluxity for Fluxity {
     /// let id = fluxity_client::set_monthly_fee(200);
     /// ```
     fn set_monthly_fee(e: Env, fee: i128) {
-        storage::set_monthly_fee(&e, fee);
+        set_monthly_fee(&e, fee);
     }
 
     /// Returns the monthly fee for lockups
@@ -66,7 +71,7 @@ impl IFluxity for Fluxity {
     /// let fee = fluxity_client::get_monthly_fee();
     /// ```
     fn get_monthly_fee(e: Env) -> i128 {
-        storage::get_monthly_fee(&e)
+        get_monthly_fee(&e)
     }
 
     /// Returns the latest lockup id
@@ -77,7 +82,7 @@ impl IFluxity for Fluxity {
     /// let id = fluxity_client::get_latest_stream_id();
     /// ```
     fn get_latest_lockup_id(e: Env) -> u64 {
-        storage::get_latest_lockup_id(&e)
+        get_latest_lockup_id(&e)
     }
 
     /// Returns the fee calculated based on the start and end time of a lockup
@@ -88,7 +93,7 @@ impl IFluxity for Fluxity {
     /// let fee = fluxity_client::calculate_fee();
     /// ```
     fn calculate_fee(e: Env, start_date: u64, end_date: u64) -> i128 {
-        let monthly_fee = storage::get_monthly_fee(&e);
+        let monthly_fee = get_monthly_fee(&e);
 
         calculate_lockup_fee(start_date, end_date, monthly_fee)
     }
@@ -119,7 +124,7 @@ impl IFluxity for Fluxity {
     /// fluxity_client::cancel_lockup(&lockup_id);
     /// ```
     fn cancel_lockup(e: Env, id: u64) -> Result<(i128, i128), errors::CustomErrors> {
-        let mut lockup = storage::get_lockup_by_id(&e, &id).unwrap();
+        let mut lockup = get_lockup_by_id(&e, &id).unwrap();
 
         lockup.sender.require_auth();
 
@@ -163,7 +168,7 @@ impl IFluxity for Fluxity {
         lockup.cancelled_date = current_date;
         lockup.withdrawn = amounts.receiver_amount;
 
-        storage::set_lockup(&e, id, &lockup);
+        set_lockup(&e, id, &lockup);
 
         if receiver_amount > 0 {
             token::transfer(&e, &lockup.token, &lockup.receiver, &receiver_amount);
@@ -189,7 +194,7 @@ impl IFluxity for Fluxity {
     /// fluxity_client::withdraw_lockup(&stream_id, &amount_to_withdraw);
     /// ```
     fn withdraw_lockup(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
-        let mut lockup = storage::get_lockup_by_id(&e, &id).unwrap();
+        let mut lockup = get_lockup_by_id(&e, &id).unwrap();
 
         if amount < 0 {
             return Err(errors::CustomErrors::AmountUnderflows);
@@ -242,7 +247,7 @@ impl IFluxity for Fluxity {
 
         lockup.withdrawn = lockup.withdrawn + amount_to_transfer;
 
-        storage::set_lockup(&e, id, &lockup);
+        set_lockup(&e, id, &lockup);
 
         token::transfer(&e, &lockup.token, &lockup.receiver, &amount_to_transfer);
 
@@ -301,11 +306,11 @@ impl IFluxity for Fluxity {
 
         token::transfer_from(&e, &params.token, &params.sender, &params.amount);
 
-        let id = storage::get_latest_lockup_id(&e);
+        let id = get_latest_lockup_id(&e);
         let lockup: types::Lockup = params.into();
 
-        storage::set_lockup(&e, id, &lockup);
-        storage::increment_latest_lockup_id(&e, &id);
+        set_lockup(&e, id, &lockup);
+        increment_latest_lockup_id(&e, &id);
         events::publish_lockup_created_event(&e, id);
 
         Ok(id)
@@ -349,7 +354,7 @@ impl IFluxity for Fluxity {
         lockup.amount = lockup.amount + adding_amount;
         lockup.end_date = lockup.end_date + additional_duration;
 
-        storage::set_lockup(&e, id, &lockup);
+        set_lockup(&e, id, &lockup);
 
         events::publish_lockup_topup_event(&e, id);
 
