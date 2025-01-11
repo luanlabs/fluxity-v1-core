@@ -4,7 +4,6 @@ pub mod data_key;
 pub mod errors;
 pub mod events;
 pub mod extend_ttl;
-pub mod interface;
 pub mod storage;
 pub mod token;
 pub mod types;

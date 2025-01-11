@@ -16,6 +16,7 @@ fn test_create_vesting_should_work() {
 
     let params = LockupInput {
         amount: 1000,
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         end_date,
@@ -40,6 +41,7 @@ fn test_create_vesting_should_store_is_vesting_to_true() {
 
     let params = LockupInput {
         amount: 1000,
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         end_date,
@@ -68,6 +70,7 @@ fn test_create_vesting_should_revert_when_amount_is_negative() {
 
     let params = LockupInput {
         amount: -100,
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         end_date,
@@ -95,6 +98,7 @@ fn test_create_vesting_should_revert_when_amount_is_zero() {
     let params = LockupInput {
         amount: 0,
         sender: vars.admin.clone(),
+        spender: vars.admin.clone(),
         receiver,
         end_date,
         cliff_date: now,
@@ -119,6 +123,7 @@ fn test_create_vesting_should_revert_when_sender_and_receiver_are_the_same() {
 
     let params = LockupInput {
         amount: 1000,
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver: vars.admin.clone(),
         end_date,
@@ -146,6 +151,7 @@ fn test_create_vesting_should_revert_when_start_date_is_equal_to_end_date() {
     let params = LockupInput {
         amount: 1000,
         sender: vars.admin.clone(),
+        spender: vars.admin.clone(),
         receiver,
         end_date: now,
         cliff_date: now,
@@ -171,6 +177,7 @@ fn test_create_vesting_should_revert_when_cancellable_date_is_greater_than_end_d
 
     let params = LockupInput {
         amount: 1000,
+        spender: vars.admin.clone(),
         sender: vars.admin.clone(),
         receiver,
         end_date,

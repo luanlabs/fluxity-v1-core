@@ -24,7 +24,7 @@ impl Fluxity {
     /// ```
     // / let id = fluxity_client::initialize();
     /// ```
-    fn initialize(e: Env, admin: Address, xlm: Address, monthly_fee: i128) {
+    pub fn initialize(e: Env, admin: Address, xlm: Address, monthly_fee: i128) {
         set_admin(&e, admin);
         set_xlm(&e, xlm);
         set_monthly_fee(&e, monthly_fee);
@@ -37,7 +37,7 @@ impl Fluxity {
     /// ```
     /// let admin = fluxity_client::get_admin();
     /// ```
-    fn get_admin(e: Env) -> Address {
+    pub fn get_admin(e: Env) -> Address {
         get_admin(&e)
     }
 
@@ -48,7 +48,7 @@ impl Fluxity {
     /// ```
     /// let xlm_address = fluxity_client::get_xlm();
     /// ```
-    fn get_xlm(e: Env) -> Address {
+    pub fn get_xlm(e: Env) -> Address {
         get_xlm(&e)
     }
 
@@ -59,7 +59,7 @@ impl Fluxity {
     /// ```
     /// let id = fluxity_client::set_monthly_fee(200);
     /// ```
-    fn set_monthly_fee(e: Env, fee: i128) {
+    pub fn set_monthly_fee(e: Env, fee: i128) {
         set_monthly_fee(&e, fee);
     }
 
@@ -70,7 +70,7 @@ impl Fluxity {
     /// ```
     /// let fee = fluxity_client::get_monthly_fee();
     /// ```
-    fn get_monthly_fee(e: Env) -> i128 {
+    pub fn get_monthly_fee(e: Env) -> i128 {
         get_monthly_fee(&e)
     }
 
@@ -81,7 +81,7 @@ impl Fluxity {
     /// ```
     /// let id = fluxity_client::get_latest_stream_id();
     /// ```
-    fn get_latest_lockup_id(e: Env) -> u64 {
+    pub fn get_latest_lockup_id(e: Env) -> u64 {
         get_latest_lockup_id(&e)
     }
 
@@ -92,7 +92,7 @@ impl Fluxity {
     /// ```
     /// let fee = fluxity_client::calculate_fee();
     /// ```
-    fn calculate_fee(e: Env, start_date: u64, end_date: u64) -> i128 {
+    pub fn calculate_fee(e: Env, start_date: u64, end_date: u64) -> i128 {
         let monthly_fee = get_monthly_fee(&e);
 
         calculate_lockup_fee(start_date, end_date, monthly_fee)
@@ -107,7 +107,7 @@ impl Fluxity {
     ///
     /// fluxity_client::get_lockup(&stream_id);
     /// ```
-    fn get_lockup(e: Env, id: u64) -> Result<types::Lockup, errors::CustomErrors> {
+    pub fn get_lockup(e: Env, id: u64) -> Result<types::Lockup, errors::CustomErrors> {
         match e.storage().persistent().get(&data_key::DataKey::Lockup(id)) {
             None => Err(errors::CustomErrors::LockupNotFound),
             Some(lockup) => Ok(lockup),
@@ -123,7 +123,7 @@ impl Fluxity {
     ///
     /// fluxity_client::cancel_lockup(&lockup_id);
     /// ```
-    fn cancel_lockup(e: Env, id: u64) -> Result<(i128, i128), errors::CustomErrors> {
+    pub fn cancel_lockup(e: &Env, id: u64) -> Result<(i128, i128), errors::CustomErrors> {
         let mut lockup = get_lockup_by_id(&e, &id).unwrap();
 
         lockup.sender.require_auth();
@@ -193,7 +193,7 @@ impl Fluxity {
     ///
     /// fluxity_client::withdraw_lockup(&stream_id, &amount_to_withdraw);
     /// ```
-    fn withdraw_lockup(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
+    pub fn withdraw_lockup(e: Env, id: u64, amount: i128) -> Result<i128, errors::CustomErrors> {
         let mut lockup = get_lockup_by_id(&e, &id).unwrap();
 
         if amount < 0 {
@@ -245,7 +245,7 @@ impl Fluxity {
             amount_to_transfer = withdrawable;
         }
 
-        lockup.withdrawn = lockup.withdrawn + amount_to_transfer;
+        lockup.withdrawn += amount_to_transfer;
 
         set_lockup(&e, id, &lockup);
 
@@ -276,35 +276,39 @@ impl Fluxity {
     ///
     /// fluxity_client::create_lockup(&params);
     /// ```
-    fn create_lockup(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
+    pub fn create_lockup(e: Env, params: types::LockupInput) -> Result<u64, errors::CustomErrors> {
+        params.spender.require_auth();
+
         if params.amount <= 0 {
             return Err(errors::CustomErrors::InvalidAmount);
         }
 
-        if &params.sender == &params.receiver {
+        if params.sender == params.receiver {
             return Err(errors::CustomErrors::InvalidReceiver);
         }
 
-        if &params.start_date >= &params.end_date {
+        if params.start_date >= params.end_date {
             return Err(errors::CustomErrors::InvalidStartDate);
         }
 
-        if &params.cancellable_date > &params.end_date {
+        if params.cancellable_date > params.end_date {
             return Err(errors::CustomErrors::InvalidCancellableDate);
         }
 
-        if &params.cliff_date < &params.start_date || &params.cliff_date > &params.end_date {
+        if params.cliff_date < params.start_date || params.cliff_date > params.end_date {
             return Err(errors::CustomErrors::InvalidCliffDate);
         }
 
+        let admin = get_admin(&e);
         take_xlm_fee(
             &e,
             params.start_date,
             params.end_date,
-            params.sender.clone(),
+            params.spender.clone(),
+            admin,
         );
 
-        token::transfer_from(&e, &params.token, &params.sender, &params.amount);
+        token::transfer_from(&e, &params.token, &params.spender, &params.amount);
 
         let id = get_latest_lockup_id(&e);
         let lockup: types::Lockup = params.into();
@@ -326,7 +330,11 @@ impl Fluxity {
     ///
     /// fluxity_client::topup_lockup(lockup_id, adding_amount);
     /// ```
-    fn topup_lockup(e: Env, id: u64, adding_amount: i128) -> Result<i128, errors::CustomErrors> {
+    pub fn topup_lockup(
+        e: Env,
+        id: u64,
+        adding_amount: i128,
+    ) -> Result<i128, errors::CustomErrors> {
         let mut lockup = get_lockup_by_id(&e, &id).unwrap();
 
         lockup.sender.require_auth();
@@ -344,15 +352,15 @@ impl Fluxity {
         let additional_duration = calculate_additional_time(&lockup, adding_amount);
 
         if lockup.cancelled_date == lockup.end_date {
-            lockup.cancellable_date = lockup.cancellable_date + additional_duration;
+            lockup.cancellable_date += additional_duration;
         }
 
         if lockup.cliff_date == lockup.end_date {
-            lockup.cliff_date = lockup.cliff_date + additional_duration;
+            lockup.cliff_date += additional_duration;
         }
 
-        lockup.amount = lockup.amount + adding_amount;
-        lockup.end_date = lockup.end_date + additional_duration;
+        lockup.amount += adding_amount;
+        lockup.end_date += additional_duration;
 
         set_lockup(&e, id, &lockup);
 

@@ -68,13 +68,14 @@ impl<'a> SetupStreamTest<'a> {
 
         let admin = Address::generate(&env);
 
-        let xlm_id = env.register_stellar_asset_contract(admin.clone());
-        let xlm_client = soroban_sdk::token::Client::new(&env, &xlm_id);
-        let xlm_admin_client = soroban_sdk::token::StellarAssetClient::new(&env, &xlm_id);
+        let xlm_id = env.register_stellar_asset_contract_v2(admin.clone());
+        let xlm_client = soroban_sdk::token::Client::new(&env, &xlm_id.address());
+        let xlm_admin_client = soroban_sdk::token::StellarAssetClient::new(&env, &xlm_id.address());
 
-        let token_id = env.register_stellar_asset_contract(admin.clone());
-        let token_client = soroban_sdk::token::Client::new(&env, &token_id);
-        let token_admin_client = soroban_sdk::token::StellarAssetClient::new(&env, &token_id);
+        let token_id = env.register_stellar_asset_contract_v2(admin.clone());
+        let token_client = soroban_sdk::token::Client::new(&env, &token_id.address());
+        let token_admin_client =
+            soroban_sdk::token::StellarAssetClient::new(&env, &token_id.address());
 
         let contract_id = env.register_contract(None, Fluxity);
         let client = FluxityClient::new(&env, &contract_id);
@@ -82,8 +83,8 @@ impl<'a> SetupStreamTest<'a> {
         client.initialize(&admin, &xlm_client.address, &0);
         client.set_monthly_fee(&0);
 
-        xlm_admin_client.mint(&admin, &i128::MAX);
-        token_admin_client.mint(&admin, &i128::MAX);
+        xlm_admin_client.mint(&admin, &(i128::MAX / 2));
+        token_admin_client.mint(&admin, &(i128::MAX / 2));
 
         token_client.approve(&admin, &client.address, &i128::MAX, &6311000);
 
@@ -105,6 +106,7 @@ impl<'a> SetupStreamTest<'a> {
 
         let params = crate::base::types::LockupInput {
             sender: vars.admin.clone(),
+            spender: vars.admin.clone(),
             receiver,
             token: vars.token.address.clone(),
             amount: vars.amount,
@@ -120,7 +122,10 @@ impl<'a> SetupStreamTest<'a> {
 
         assert_eq!(vars.contract.get_lockup(&0).sender, vars.admin.clone());
         assert_eq!(vars.token.decimals(), 7);
-        assert_eq!(vars.token.balance(&vars.admin), i128::MAX - vars.amount);
+        assert_eq!(
+            vars.token.balance(&vars.admin),
+            (i128::MAX / 2) - vars.amount
+        );
         assert_eq!(vars.token.balance(&vars.contract.address), vars.amount);
 
         (vars, id)
@@ -133,6 +138,7 @@ impl<'a> SetupStreamTest<'a> {
         let now = vars.env.ledger().timestamp();
 
         let params = LockupInput {
+            spender: vars.admin.clone(),
             sender: vars.admin.clone(),
             receiver,
             amount: fields.amount,

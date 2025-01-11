@@ -29,7 +29,7 @@ pub fn increment_latest_lockup_id(e: &Env, id: &u64) {
         .instance()
         .set(&data_key::DataKey::LatestLockupId, &(id + 1));
 
-    extend_contract_ttl(&e);
+    extend_contract_ttl(e);
 }
 
 pub fn set_lockup(e: &Env, id: u64, stream: &types::Lockup) {
@@ -37,8 +37,8 @@ pub fn set_lockup(e: &Env, id: u64, stream: &types::Lockup) {
 
     e.storage().persistent().set(&key, stream);
 
-    extend_data_ttl(&e, &key);
-    extend_contract_ttl(&e);
+    extend_data_ttl(e, &key);
+    extend_contract_ttl(e);
 }
 
 pub fn set_admin(e: &Env, admin: Address) {
@@ -46,7 +46,7 @@ pub fn set_admin(e: &Env, admin: Address) {
 
     e.storage().instance().set(&key, &admin);
 
-    extend_contract_ttl(&e);
+    extend_contract_ttl(e);
 }
 
 pub fn get_admin(e: &Env) -> Address {
@@ -60,7 +60,7 @@ pub fn set_monthly_fee(e: &Env, fee: i128) {
 
     e.storage().instance().set(&key, &fee);
 
-    extend_contract_ttl(&e);
+    extend_contract_ttl(e);
 }
 
 pub fn get_monthly_fee(e: &Env) -> i128 {
@@ -70,15 +70,15 @@ pub fn get_monthly_fee(e: &Env) -> i128 {
 }
 
 pub fn set_xlm(e: &Env, xlm: Address) {
-    let key = data_key::DataKey::XLM;
+    let key = data_key::DataKey::Xlm;
 
     e.storage().instance().set(&key, &xlm);
 
-    extend_contract_ttl(&e);
+    extend_contract_ttl(e);
 }
 
 pub fn get_xlm(e: &Env) -> Address {
-    let key = data_key::DataKey::XLM;
+    let key = data_key::DataKey::Xlm;
 
     e.storage().instance().get(&key).unwrap()
 }
