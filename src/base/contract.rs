@@ -2,7 +2,7 @@ use soroban_sdk::{contract, contractimpl, Address, Env};
 use token::take_xlm_fee;
 use utils::calculate_lockup_fee;
 
-use self::utils::calculate_additional_time;
+use self::{errors::CustomErrors, storage::get_xlm_option, utils::calculate_additional_time};
 
 use super::{
     storage::{
@@ -24,10 +24,21 @@ impl Fluxity {
     /// ```
     // / let id = fluxity_client::initialize();
     /// ```
-    pub fn initialize(e: Env, admin: Address, xlm: Address, monthly_fee: i128) {
+    pub fn initialize(
+        e: Env,
+        admin: Address,
+        xlm: Address,
+        monthly_fee: i128,
+    ) -> Result<(), CustomErrors> {
+        if get_xlm_option(&e).is_some() {
+            return Err(CustomErrors::AlreadyInitialized);
+        }
+
         set_admin(&e, admin);
         set_xlm(&e, xlm);
         set_monthly_fee(&e, monthly_fee);
+
+        Ok(())
     }
 
     /// Returns the admin of the Fluxity contract

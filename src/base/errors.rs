@@ -18,4 +18,5 @@ pub enum CustomErrors {
     LockupIsCanceled = 25,
     SpecifiedAmountIsGreaterThanWithdrawable = 26,
     AmountUnderflows = 27,
+    AlreadyInitialized = 30,
 }

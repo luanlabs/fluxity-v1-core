@@ -78,7 +78,11 @@ pub fn set_xlm(e: &Env, xlm: Address) {
 }
 
 pub fn get_xlm(e: &Env) -> Address {
+    get_xlm_option(e).unwrap()
+}
+
+pub fn get_xlm_option(e: &Env) -> Option<Address> {
     let key = data_key::DataKey::Xlm;
 
-    e.storage().instance().get(&key).unwrap()
+    e.storage().instance().get(&key)
 }
